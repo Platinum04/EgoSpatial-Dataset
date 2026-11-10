@@ -25,6 +25,8 @@ jobs:
         run: python tools/make_vectors.py
       - name: JS port conformance
         run: node ports/js/conformance.test.js
+      - name: EgoSpatial Live (WebXR) logic tests
+        run: node examples/webxr-live/scene-logic.test.js
       - name: Install package and run CLI
         run: |
           pip install .
