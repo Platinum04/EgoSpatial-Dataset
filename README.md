@@ -5,7 +5,7 @@
 [![ci](https://github.com/Platinum04/EgoSpatial-Dataset/actions/workflows/ci.yml/badge.svg)](https://github.com/Platinum04/EgoSpatial-Dataset/actions/workflows/ci.yml)
 · Model and experiment artifacts: [huggingface.co/Platinum04/EgoSpatial-Gemma-v2](https://huggingface.co/Platinum04/EgoSpatial-Gemma-v2)
 · Datasets: [huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data](https://huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data)
-· Live WebXR demo: [huggingface.co/spaces/Platinum04/EgoSpatial-WebXR](https://huggingface.co/spaces/Platinum04/EgoSpatial-WebXR)
+· **EgoSpatial Live** (mixed reality on Meta Quest 3/3S and Android XR): [platinum04-egospatial-webxr.static.hf.space](https://platinum04-egospatial-webxr.static.hf.space/)
 
 ## Findings
 We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questions such as "Where is the lamp relative to me?" from a structured scene description.
@@ -14,7 +14,8 @@ We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questi
 2. **Output layer.** The apparent "right bias" is a numerical artifact. Gemma-2 caps its output scores at 30, and on lateral questions both `left` and `right` sit at about 29.75. In bf16 they become **exact ties in 379 of 400 cases**, and greedy decoding picks the lower token id, `right`. Recomputed in fp32, the model weakly prefers `left` every time and still does not discriminate (AUC 0.59).
 3. **Hidden states.** We ran linear probes at all 27 layers, using scene-grouped cross-validation on the validation split. Left/right is **not linearly decodable at any layer** of either fine-tuned model (best 0.545, 95% CI 0.50–0.60). Front/behind reaches **1.000 from layer 14** under the identical method, which serves as the positive control.
 4. **Interpretation.** Front/behind reduces to an equality test (same or opposite of the heading). Left/right requires *handedness* (+90° vs −90°), which the models never represented. More fine-tuning of the answer token is not justified by this evidence.
-5. **Architecture decision.** Geometry is computed by a deterministic engine. The language model is used only to turn free-form questions into a structured query, its output is validated, and the engine abstains instead of guessing.
+5. **Newer models (Gemma 4, 11-A).** Zero-shot, Gemma 4 E2B and E4B (NF4) also fail on egocentric left/right. E2B scores 34%. E4B scores 18%, which is below chance and suggests a systematic mapping error. Yet linear probes with the same object-pair-grouped protocol recover left/right from their **late layers**: 0.85 (E2B, layer 32/35) and **0.98 (E4B, layer 41/42)**. Front/behind is decodable by the middle layers. Gemma 4 appears to compute the lateral relation but not read it out. That claim stays provisional until the base Gemma-2 control runs. Report: [`research/11A_gemma4/11A_REPORT.md`](research/11A_gemma4/11A_REPORT.md).
+6. **Architecture decision.** Geometry is computed by a deterministic engine. The language model is used only to turn free-form questions into a structured query, its output is validated, and the engine abstains instead of guessing.
 
 | System (untouched V4 test, n = 800) | Overall | Front | Behind | Left | Right |
 |---|---:|---:|---:|---:|---:|
@@ -31,7 +32,9 @@ Full write-up: [`engine/docs/RESEARCH_REPORT.md`](engine/docs/RESEARCH_REPORT.md
 |---|---|
 | [`engine/`](engine/) | `egospatial`: a dependency-free Python package with a CLI and HTTP API, plus JS (WebXR), C# (Unity) and Kotlin (Android XR) ports, tests and benchmarks |
 | [`engine/docs/`](engine/docs/) | Research report, architecture, API, XR integration guide, datasets, model training, reproducibility |
-| [`engine/examples/webxr/`](engine/examples/webxr/) | WebXR demo: simulated mode, plus live `immersive-ar` with hit-test |
+| [`engine/examples/webxr-live/`](engine/examples/webxr-live/) | **EgoSpatial Live**: three.js mixed-reality app for Quest 3/3S and Android XR. It labels real furniture as front/behind/left/right as you move, and speaks a summary on pinch. |
+| [`engine/examples/webxr/`](engine/examples/webxr/) | Earlier WebXR demo: simulated mode, plus live `immersive-ar` with hit-test |
+| [`research/11A_gemma4/`](research/11A_gemma4/) | Gemma 4 replication: script and report. Raw outputs are on HF under `11_evaluation/11A_gemma4/`. |
 | [`notebooks/`](notebooks/), `EgoSpatial_Gemma_Prototype.ipynb` | The Colab research notebook (experiments 01–12) |
 | `v1_balanced_*_scannetv2.json` | SQA3D-style balanced question and annotation files (ScanNet scenes) from the project's early data exploration. Their use is subject to the original SQA3D/ScanNet terms. |
 | [`PROJECT_STATUS.md`](PROJECT_STATUS.md) | Milestone tracker with every artifact location |
@@ -50,7 +53,7 @@ egospatial-server --port 8765                   # HTTP JSON API for Unity / WebX
 | Component | Status |
 |---|---|
 | Deterministic engine (Python) | Tested. Parity with the original 08B engine on 20,000 random scenes; 100% on V4 validation and test. |
-| JavaScript / WebXR | 3,204/3,204 conformance checks. Demo hosted over HTTPS. **Live on-device run pending.** |
+| JavaScript / WebXR | 3,204/3,204 conformance checks. **EgoSpatial Live** reads real room semantics (WebXR plane/mesh detection) and is verified in an emulated Quest 3. A recording on a physical Quest 3S is pending. |
 | Unity (C#) and Android XR (Kotlin) ports | Written, formulas numerically cross-checked. **Not yet compiled or run on device.** |
 | Gemma semantic parser | 87.5% on fresh phrasings. 28/240 questions are mis-parsed and answered confidently wrong. Main open weakness. |
 | Real-world evaluation (perception noise) | Not yet done |

@@ -1,6 +1,6 @@
 # EgoSpatial-Gemma — PROJECT STATUS
 
-_Last updated: 2026-11-10 (v1.0.1 released; GitHub + Hugging Face public)_
+_Last updated: 2026-11-10 (EgoSpatial Live MR app deployed; Gemma 4 study 11-A)_
 
 ## Repositories
 | Purpose | Location | Access |
@@ -8,7 +8,7 @@ _Last updated: 2026-11-10 (v1.0.1 released; GitHub + Hugging Face public)_
 | Code, docs, CI | [github.com/Platinum04/EgoSpatial-Dataset](https://github.com/Platinum04/EgoSpatial-Dataset) | Public |
 | Model adapters + all experiment artifacts | [hf: Platinum04/EgoSpatial-Gemma-v2](https://huggingface.co/Platinum04/EgoSpatial-Gemma-v2) | Public |
 | Datasets (v2, v3, v4) | [hf: datasets/Platinum04/EgoSpatial-Gemma-data](https://huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data) | Public |
-| WebXR demo (HTTPS) | [hf: spaces/Platinum04/EgoSpatial-WebXR](https://huggingface.co/spaces/Platinum04/EgoSpatial-WebXR) | Public |
+| EgoSpatial Live: mixed reality for Quest 3/3S and Android XR (HTTPS) | [platinum04-egospatial-webxr.static.hf.space](https://platinum04-egospatial-webxr.static.hf.space/) (Space `Platinum04/EgoSpatial-WebXR`; code in `engine/examples/webxr-live/`) | Public |
 | Research notebook | `EgoSpatial_Gemma_Prototype.ipynb` (Colab / this repo) | Public |
 
 ## Milestones
@@ -24,7 +24,8 @@ _Last updated: 2026-11-10 (v1.0.1 released; GitHub + Hugging Face public)_
 | 08D-7 | Interpretation + architecture decision | ✓ | `08D/08D-7/08D-7_REPORT.md` |
 | 08E | Hybrid orchestrator (deterministic geometry + Gemma parsing) | ✓ | `08E/` |
 | 09 | Portable engine package (Python + JS/C#/Kotlin ports, HTTP API) | ✓ | `engine/egospatial-1.0.1/`, GitHub `engine/` |
-| 10 | XR integration | ◐ WebXR hosted; on-device runs pending | Space, `engine/ports/`, `engine/examples/webxr/` |
+| 10 | XR integration | ◐ EgoSpatial Live deployed. It reads real room semantics via WebXR plane/mesh detection and is verified in an emulated Quest 3 (IWER). A Quest 3S recording is pending | Space, `engine/examples/webxr-live/`, `engine/ports/` |
+| 11-A | Gemma 4 replication (zero-shot + layer-wise probes) | ◐ E2B and E4B (NF4) done; Gemma-2 base control pending (GPU quota) | `11_evaluation/11A_gemma4/` |
 | 11 | Evaluation (fresh phrasings, latency, invalid inputs, cross-platform) | ✓ | `11_evaluation/` |
 | 12 | Documentation + release v1.0.1 | ✓ | GitHub `engine/docs/`, `engine/RELEASE_NOTES.md` |
 
@@ -39,11 +40,18 @@ _Last updated: 2026-11-10 (v1.0.1 released; GitHub + Hugging Face public)_
 - **08D-6B/C:** left/right is not linearly decodable at any of the 27 layers for either adapter (best 0.545, 95% CI 0.50–0.60). The front/behind control is 1.000 from layer 14.
 - **Fresh phrasings (240 questions):** the hybrid with parser v2 scores 87.5% (v1: 73.8%). There were 28 confident mis-parses. Neural parse takes ≈1.5 s on a T4; the deterministic path takes 0.017 ms.
 
+- **11-A Gemma 4 (zero-shot, n=800).**
+  - Overall: E2B 39.3%, E4B-NF4 36.5%.
+  - Egocentric left/right: E2B 34%, E4B 18% (below chance).
+  - Linear probes (GroupKFold by object pair) recover egocentric left/right from the late layers: E2B 0.852 @L32/35, E4B 0.983 @L41/42.
+  - Front/behind reaches 1.000 by the middle layers.
+  - So Gemma 4 computes the lateral relation internally but does not output it. The Gemma-2 base control is still to run. See `11_evaluation/11A_gemma4/11A_REPORT.md`.
+
 ## Remaining work
-1. **WebXR on device:** open the Space in Quest Browser or Chrome on ARCore → Start LIVE AR → place objects → turn around → record a video.
+1. **Quest 3S recording of EgoSpatial Live:** run Space Setup, open the demo in Quest Browser, Start Mixed Reality, turn around, pinch, and record 30–60 s.
 2. **Android XR app** (Jetpack XR) built on `engine/ports/android/EgoSpatial.kt`. Run it on a device or the Android XR emulator and record.
 3. **Unity / Quest 3S** build using `engine/ports/unity/`.
-4. **Research strengthening:** replicate the probe study on 2–3 more models, add a causal (activation-patching) test, and write the paper.
+4. **Research:** run the Gemma-2 base control and a shuffled-label baseline through `g4_study.py`; E4B in bf16; a causal test (steer or patch along the probe direction); fine-tune Gemma 4 E2B with the V4 recipe; write the paper.
 5. **Parser:** constrained JSON decoding or a trained parser; show the parsed query in the UI.
 6. **Real-world evaluation** with perception noise.
 
