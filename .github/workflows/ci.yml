@@ -1,0 +1,34 @@
+name: ci
+on:
+  push:
+  pull_request:
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    defaults:
+      run:
+        working-directory: engine
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Unit and integration tests
+        run: python -m unittest discover -s tests -v
+      - name: Regenerate cross-platform vectors
+        run: python tools/make_vectors.py
+      - name: JS port conformance
+        run: node ports/js/conformance.test.js
+      - name: Install package and run CLI
+        run: |
+          pip install .
+          egospatial --state examples/scene.json --question "Where is the chair_01 relative to me?" | tee out.json
+          python -c "import json; d=json.load(open('out.json')); assert d['answer']=='front', d"
+      - name: Benchmark
+        run: python benchmarks/bench.py
