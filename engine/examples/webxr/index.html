@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EgoSpatial WebXR Demo</title>
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --ink:#e8eaf0; --muted:#9aa3b2; --accent:#5aa9ff; --live:#3ddc84; --sim:#ffb84d; }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink) }
+  header { padding:14px 16px; border-bottom:1px solid #262a33 }
+  h1 { font-size:18px; margin:0 0 4px }
+  .muted { color:var(--muted); font-size:13px }
+  .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-weight:600; font-size:12px; color:#111 }
+  .sim { background:var(--sim) } .live { background:var(--live) }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 340px; gap:16px; padding:16px }
+  @media (max-width: 800px) { main { grid-template-columns:1fr } }
+  canvas { width:100%; aspect-ratio:1; background:var(--panel); border-radius:10px; touch-action:none }
+  .panel { background:var(--panel); border-radius:10px; padding:12px }
+  table { width:100%; border-collapse:collapse; font-size:14px } td,th { padding:4px 6px; text-align:left; border-bottom:1px solid #262a33 }
+  button, input, select { font:inherit; border-radius:8px; border:1px solid #333a46; background:#222733; color:var(--ink); padding:6px 10px }
+  button.primary { background:var(--accent); color:#06121f; border:0; font-weight:600 }
+  #overlay { position:fixed; inset:auto 8px 8px 8px; background:rgba(15,17,21,.85); color:#fff; padding:10px; border-radius:10px; font-size:14px; display:none }
+  #overlay.on { display:block }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:8px 0 }
+</style>
+</head>
+<body>
+<header>
+  <h1>EgoSpatial — WebXR integration demo</h1>
+  <div class="muted">Deterministic egocentric relations (front / behind / left / right) from the agent's pose. Engine: <code>egospatial.js</code> (conformance-tested against the Python reference).</div>
+  <div class="row"><span id="modeBadge" class="badge sim">SIMULATED SCENE</span>
+    <button id="arBtn" class="primary" disabled>Checking WebXR AR support…</button></div>
+</header>
+<main>
+  <div>
+    <canvas id="map" width="600" height="600" aria-label="Top-down scene: drag objects, use the slider to turn the agent"></canvas>
+    <div class="row"><label>Agent heading <input id="heading" type="range" min="0" max="359" value="0"></label><span id="hval">0°</span>
+      <button id="add">Add object</button></div>
+    <div class="muted">North is up. Drag objects. Heading 0° = North, 90° = East.</div>
+  </div>
+  <div class="panel">
+    <div class="row"><strong>Relations</strong><span class="muted" id="src">source: simulated</span></div>
+    <table><thead><tr><th>Object</th><th>Direction</th><th>Angle</th><th>Dist</th></tr></thead><tbody id="rel"></tbody></table>
+    <p class="muted">In LIVE mode, tap a real surface to place an object; relations update from your headset/phone pose every frame. Canonical "North" = the session's initial forward direction (XR runtimes do not know true north).</p>
+  </div>
+</main>
+<div id="overlay"><span class="badge live">LIVE DEVICE PERCEPTION</span> <span id="ovText">Tap a surface to place an object.</span>
+  <div id="ovRel"></div><button id="exitAr">Exit AR</button></div>
+
+<script src="egospatial.js"></script>
+<script>
+const ES = window.EgoSpatial;
+const LABELS = ["chair", "table", "lamp", "door", "plant", "sofa", "desk", "shelf"];
+let sim = { agent: { position: { x: 0, y: 0, z: 0 }, heading: 0 },
+  objects: [ { id: "chair", label: "chair", position: { x: 1.2, y: 0, z: -0.8 } },
+             { id: "table", label: "table", position: { x: -0.5, y: 0, z: -1.4 } },
+             { id: "lamp", label: "lamp", position: { x: 0.3, y: 0, z: 2.0 } } ], source: "simulated" };
+
+const fmt = (r) => `<tr><td>${r.target}</td><td><b>${r.direction}</b></td><td>${r.signed_angle_deg.toFixed(0)}°</td><td>${Math.hypot(r.world_displacement.x, r.world_displacement.z).toFixed(2)} m</td></tr>`;
+function renderTable(state) {
+  try { document.getElementById("rel").innerHTML = Object.values(ES.allRelations(state)).map(fmt).join(""); }
+  catch (e) { document.getElementById("rel").innerHTML = `<tr><td colspan=4>${e.message}</td></tr>`; }
+}
+
+// ---------------- SIMULATED top-down view ----------------
+const cv = document.getElementById("map"), cx = cv.getContext("2d"), S = 60; // px per metre
+const toPx = (p) => [cv.width / 2 + p.x * S, cv.height / 2 - p.z * S];
+const toW = (px, py) => ({ x: (px - cv.width / 2) / S, y: 0, z: (cv.height / 2 - py) / S });
+function draw() {
+  cx.clearRect(0, 0, cv.width, cv.height);
+  cx.strokeStyle = "#262a33";
+  for (let i = -5; i <= 5; i++) { const [a] = toPx({ x: i, z: 0 }); const [, b] = toPx({ x: 0, z: i });
+    cx.beginPath(); cx.moveTo(a, 0); cx.lineTo(a, cv.height); cx.stroke(); cx.beginPath(); cx.moveTo(0, b); cx.lineTo(cv.width, b); cx.stroke(); }
+  cx.fillStyle = "#9aa3b2"; cx.font = "14px system-ui"; cx.fillText("N", cv.width / 2 - 4, 16);
+  const [ax, ay] = toPx(sim.agent.position), t = sim.agent.heading * Math.PI / 180;
+  cx.save(); cx.translate(ax, ay); cx.rotate(t); cx.fillStyle = "#5aa9ff";
+  cx.beginPath(); cx.moveTo(0, -18); cx.lineTo(11, 12); cx.lineTo(-11, 12); cx.closePath(); cx.fill(); cx.restore();
+  const rels = ES.allRelations(sim);
+  for (const o of sim.objects) { const [x, y] = toPx(o.position);
+    cx.fillStyle = { front: "#3ddc84", behind: "#ff6b6b", left: "#ffb84d", right: "#c77dff" }[rels[o.id].direction];
+    cx.beginPath(); cx.arc(x, y, 10, 0, 7); cx.fill(); cx.fillStyle = "#e8eaf0"; cx.fillText(`${o.id} (${rels[o.id].direction})`, x + 14, y + 5); }
+  renderTable(sim);
+}
+let drag = null;
+cv.addEventListener("pointerdown", (e) => { const r = cv.getBoundingClientRect(), k = cv.width / r.width;
+  const px = (e.clientX - r.left) * k, py = (e.clientY - r.top) * k;
+  drag = sim.objects.find((o) => { const [x, y] = toPx(o.position); return Math.hypot(x - px, y - py) < 16; }); });
+cv.addEventListener("pointermove", (e) => { if (!drag) return; const r = cv.getBoundingClientRect(), k = cv.width / r.width;
+  const w = toW((e.clientX - r.left) * k, (e.clientY - r.top) * k);
+  if (Math.hypot(w.x, w.z) > 0.05) { drag.position = w; draw(); } });
+addEventListener("pointerup", () => drag = null);
+document.getElementById("heading").oninput = (e) => { sim.agent.heading = +e.target.value; document.getElementById("hval").textContent = e.target.value + "°"; draw(); };
+document.getElementById("add").onclick = () => { const n = sim.objects.length; const l = LABELS[n % LABELS.length];
+  sim.objects.push({ id: `${l}_${n}`, label: l, position: { x: Math.cos(n) * 2, y: 0, z: Math.sin(n) * 2 } }); draw(); };
+draw();
+
+// ---------------- LIVE WebXR immersive-ar + hit-test ----------------
+const arBtn = document.getElementById("arBtn");
+(async () => {
+  const ok = navigator.xr && await navigator.xr.isSessionSupported("immersive-ar").catch(() => false);
+  arBtn.textContent = ok ? "Start LIVE AR (WebXR)" : "WebXR AR not available on this device/browser";
+  arBtn.disabled = !ok;
+})();
+
+let session = null;
+arBtn.onclick = async () => {
+  const overlay = document.getElementById("overlay");
+  session = await navigator.xr.requestSession("immersive-ar", { requiredFeatures: ["hit-test", "local"],
+    optionalFeatures: ["dom-overlay"], domOverlay: { root: overlay } });
+  overlay.classList.add("on"); document.getElementById("modeBadge").className = "badge live";
+  document.getElementById("modeBadge").textContent = "LIVE DEVICE PERCEPTION"; document.getElementById("src").textContent = "source: live";
+  const glc = document.createElement("canvas"); const gl = glc.getContext("webgl", { xrCompatible: true });
+  await session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
+  const local = await session.requestReferenceSpace("local");
+  const viewer = await session.requestReferenceSpace("viewer");
+  const hitSrc = await session.requestHitTestSource({ space: viewer });
+  const placed = []; let lastHit = null;
+  session.addEventListener("select", () => { if (!lastHit) return;
+    const p = lastHit.transform.position, l = LABELS[placed.length % LABELS.length];
+    placed.push({ id: `${l}_${placed.length + 1}`, label: l, position: [p.x, p.y, p.z] });
+    document.getElementById("ovText").textContent = `Placed ${placed.length} object(s) on detected surfaces.`; });
+  document.getElementById("exitAr").onclick = () => session.end();
+  session.addEventListener("end", () => { overlay.classList.remove("on"); document.getElementById("modeBadge").className = "badge sim";
+    document.getElementById("modeBadge").textContent = "SIMULATED SCENE"; document.getElementById("src").textContent = "source: simulated"; session = null; draw(); });
+  const frame = (t, f) => {
+    const s = f.session; s.requestAnimationFrame(frame);
+    const gl2 = gl; gl2.bindFramebuffer(gl2.FRAMEBUFFER, s.renderState.baseLayer.framebuffer); gl2.clearColor(0, 0, 0, 0); gl2.clear(gl2.COLOR_BUFFER_BIT);
+    const hits = f.getHitTestResults(hitSrc); lastHit = hits.length ? hits[0].getPose(local) : null;
+    const pose = f.getViewerPose(local); if (!pose || !placed.length) return;
+    const p = pose.transform.position, o = pose.transform.orientation;
+    try {
+      const st = ES.fromWebXR([p.x, p.y, p.z], [o.x, o.y, o.z, o.w], placed, "live");
+      const rels = Object.values(ES.allRelations(st));
+      document.getElementById("ovRel").innerHTML = rels.map((r) => `${r.target}: <b>${r.direction}</b> (${r.signed_angle_deg.toFixed(0)}°)`).join("<br>");
+      renderTable(st);
+    } catch (e) { document.getElementById("ovRel").textContent = e.message; }
+  };
+  session.requestAnimationFrame(frame);
+};
+</script>
+</body>
+</html>
