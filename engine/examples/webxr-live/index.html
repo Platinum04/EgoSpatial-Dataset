@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EgoSpatial Live</title>
+<style>
+  :root { --bg:#0f1115; --panel:#181b22; --ink:#e8eaf0; --muted:#9aa3b2; --accent:#5aa9ff; --grid:#262a33; --live:#3ddc84; --sim:#ffb84d; }
+  * { box-sizing:border-box }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--ink) }
+  header { padding:20px 16px 12px; border-bottom:1px solid var(--grid); max-width:1200px; margin:0 auto }
+  h1 { font-size:24px; margin:0 0 6px; letter-spacing:-.01em }
+  .muted { color:var(--muted); font-size:14px }
+  .badge { display:inline-block; padding:3px 10px; border-radius:999px; font-weight:700; font-size:12px; color:#111 }
+  .sim { background:var(--sim) } .live { background:var(--live) }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:10px 0 }
+  main { display:grid; grid-template-columns:minmax(0,1fr) 360px; gap:16px; padding:16px; max-width:1200px; margin:0 auto }
+  @media (max-width: 860px) { main { grid-template-columns:1fr } }
+  canvas#map { width:100%; aspect-ratio:1; background:var(--panel); border-radius:12px; touch-action:none; display:block }
+  .panel { background:var(--panel); border-radius:12px; padding:14px }
+  .panel h2 { font-size:15px; margin:0 0 8px }
+  table { width:100%; border-collapse:collapse; font-size:14px } td,th { padding:5px 6px; text-align:left; border-bottom:1px solid var(--grid) }
+  th { color:var(--muted); font-weight:600 }
+  button, input { font:inherit; border-radius:10px; border:1px solid #333a46; background:#222733; color:var(--ink); padding:8px 12px; min-height:40px }
+  button.primary { background:var(--accent); color:#06121f; border:0; font-weight:700; font-size:16px; padding:10px 18px }
+  button:disabled { opacity:.6 }
+  #said { min-height:2.8em; font-size:15px }
+  ol { padding-left:20px; margin:6px 0 } li { margin:4px 0 }
+  a { color:var(--accent) }
+</style>
+</head>
+<body>
+<header>
+  <h1>EgoSpatial Live</h1>
+  <div class="muted">Where is everything around me? Live front / behind / left / right for real objects in your room, computed by a deterministic spatial engine (no language-model guessing).</div>
+  <div class="row">
+    <span id="mode" class="badge sim">SIMULATED</span>
+    <button id="xrBtn" class="primary" disabled>Checking mixed reality support…</button>
+  </div>
+</header>
+<main>
+  <div>
+    <canvas id="map" width="640" height="640" aria-label="Top-down simulated scene. Drag objects; use the slider to turn."></canvas>
+    <div class="row">
+      <label>Turn <input id="heading" type="range" min="0" max="359" value="0"></label><span id="hval">0°</span>
+      <button id="add">Add object</button><button id="speakSim">Speak relations</button>
+    </div>
+    <div class="muted">Simulated mode works in any browser. North is up; heading 0° = North.</div>
+  </div>
+  <div>
+    <div class="panel">
+      <h2>Relations</h2>
+      <table><thead><tr><th>Object</th><th>Direction</th><th>Angle</th><th>Dist</th></tr></thead><tbody id="rel"></tbody></table>
+      <p id="said" class="muted" aria-live="polite"></p>
+    </div>
+    <div class="panel" style="margin-top:12px">
+      <h2>On Meta Quest 3 / 3S</h2>
+      <ol class="muted">
+        <li>Run <b>Space Setup</b> once (Settings → Physical space) so the headset knows your table, couch, bed, door…</li>
+        <li>Open this page in <b>Quest Browser</b> and press <b>Start Mixed Reality</b>. Allow spatial data when asked.</li>
+        <li>Labels appear over your furniture and update as you turn: <i>TABLE · LEFT · 1.8 m</i>.</li>
+        <li><b>Pinch</b> (hands) or <b>trigger</b> (controllers): hear where everything is. <b>Grip</b>: place your own object where you look.</li>
+      </ol>
+      <p class="muted">Also runs in Chrome on Android XR. Engine and research: <a href="https://github.com/Platinum04/EgoSpatial-Dataset">github.com/Platinum04/EgoSpatial-Dataset</a></p>
+    </div>
+  </div>
+</main>
+<script src="egospatial.js"></script>
+<script src="scene-logic.js"></script>
+<script type="importmap">{ "imports": { "three": "./three.module.min.js" } }</script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
