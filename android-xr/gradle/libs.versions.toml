@@ -1,0 +1,24 @@
+# Versions taken from android/xr-samples (Hello Android XR), October 2026.
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.21"
+xrCompose = "1.0.0-beta02"
+scenecore = "1.1.0-alpha01"
+extensionsXr = "1.4.0"
+activityCompose = "1.13.0"
+composeBom = "2026.09.00"
+junit = "4.13.2"
+
+[libraries]
+androidx-xr-compose = { module = "androidx.xr.compose:compose", version.ref = "xrCompose" }
+androidx-xr-scenecore = { module = "androidx.xr.scenecore:scenecore", version.ref = "scenecore" }
+androidx-extensions-xr = { module = "com.android.extensions.xr:extensions-xr", version.ref = "extensionsXr" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
