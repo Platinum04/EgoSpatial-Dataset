@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Uses Android XR spatial APIs when available; still installs and runs on phones and tablets. -->
+    <uses-feature android:name="android.software.xr.api.spatial" android:required="false" />
+
+    <application
+        android:allowBackup="true"
+        android:label="EgoSpatial XR"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.Material.NoActionBar">
+        <!-- Start in Full Space so the two spatial panels appear side by side around the user. -->
+        <property
+            android:name="android.window.PROPERTY_XR_ACTIVITY_START_MODE"
+            android:value="XR_ACTIVITY_START_MODE_FULL_SPACE_MANAGED" />
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
