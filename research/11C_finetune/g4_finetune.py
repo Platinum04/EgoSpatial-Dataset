@@ -71,11 +71,13 @@ ENC = [encode(ex) for ex in TRAIN]
 print("answer tokens per example:", Counter(sum(1 for l in lab if l != -100) for _, lab in ENC).most_common(3))
 
 # ---- LoRA on the language model only (never the vision/audio towers)
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-if not args.bf16:
-    model = prepare_model_for_kbit_training(model, use_gradient_checkpointing=True)
-else:
-    model.gradient_checkpointing_enable()
+from peft import LoraConfig, get_peft_model
+# NOTE: peft.prepare_model_for_kbit_training is deliberately NOT used: it upcasts every non-quantized weight to fp32,
+# and Gemma 4's large embedding tables (262k vocab + per-layer embeddings) then need >8 GiB extra -> OOM on a T4.
+# Frozen weights stay in bf16; only the LoRA matrices train. Non-reentrant checkpointing needs no input grads.
+for p in model.parameters(): p.requires_grad_(False)
+model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False})
+model.config.use_cache = False
 target = r"^(?!.*(vision|audio)).*layers\.\d+\.(self_attn\.(q|k|v|o)_proj|mlp\.(gate|up|down)_proj)$"
 model = get_peft_model(model, LoraConfig(r=args.rank, lora_alpha=2 * args.rank, lora_dropout=0.05, target_modules=target, task_type="CAUSAL_LM"))
 trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)

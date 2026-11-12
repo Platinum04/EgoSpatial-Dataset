@@ -1,0 +1,78 @@
+{
+ "note": "Transcribed from the Colab output of finetune_results.json (the runtime's HF_TOKEN fetch failed, so the raw file and adapter are still in the runtime). Values copied exactly; train_log omitted.",
+ "raw_file_sha256": "12dcf2366ad77d9eb8ece6f657fe060822343a842d79396106c9eff7fd617865",
+ "model": "google/gemma-4-E2B-it",
+ "four_bit": true,
+ "transformers": "5.22.1",
+ "args": {
+  "epochs": 1,
+  "lr": 0.0002,
+  "rank": 16,
+  "bs": 4,
+  "accum": 2,
+  "seed": 0
+ },
+ "trainable_params": 24158208,
+ "seconds": 3281,
+ "train_loss": {
+  "step25": 0.1154,
+  "step100": 0.185,
+  "step200": 0.1017,
+  "step225": 0.0001,
+  "step300_to_500": 0.0
+ },
+ "validation": {
+  "overall": 1.0,
+  "egocentric": 1.0,
+  "object_to_object": 1.0,
+  "all_directions": 1.0,
+  "lateral_binary": {
+   "egocentric": 1.0,
+   "object_to_object": 1.0
+  },
+  "confusion": {
+   "left": {
+    "left": 200
+   },
+   "behind": {
+    "behind": 200
+   },
+   "front": {
+    "front": 200
+   },
+   "right": {
+    "right": 200
+   }
+  }
+ },
+ "test": {
+  "overall": 0.9988,
+  "egocentric": 0.9975,
+  "egocentric/front": 1.0,
+  "egocentric/behind": 0.99,
+  "egocentric/left": 1.0,
+  "egocentric/right": 1.0,
+  "egocentric/lateral_binary": 1.0,
+  "object_to_object": 1.0,
+  "object_to_object/front": 1.0,
+  "object_to_object/behind": 1.0,
+  "object_to_object/left": 1.0,
+  "object_to_object/right": 1.0,
+  "object_to_object/lateral_binary": 1.0,
+  "confusion": {
+   "front": {
+    "front": 200
+   },
+   "behind": {
+    "behind": 199,
+    "left": 1
+   },
+   "left": {
+    "left": 200
+   },
+   "right": {
+    "right": 200
+   }
+  }
+ }
+}

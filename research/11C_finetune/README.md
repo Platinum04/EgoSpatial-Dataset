@@ -24,4 +24,23 @@ Evaluation uses the same first-token four-way readout as 11-A and 11-B. It also 
 
 **Run:** the `# 11-C` cell in `EgoSpatial_Gemma_Prototype.ipynb`, or `python g4_finetune.py google/gemma-4-E2B-it OUT_DIR`.
 
-**Results:** `finetune_results.json` and the LoRA adapter go to HF `Platinum04/EgoSpatial-Gemma-v2/11_evaluation/11C_finetune/`. A summary will be added here.
+## Results (run 2026-11-12, Colab T4, 3,281 s)
+
+**The same LoRA recipe that left Gemma-2 at left 6% / right 95.5% solves the task on Gemma 4 E2B: 99.88% on the untouched V4 test, with left and right both at 100%.**
+
+| Model + V4 LoRA (untouched V4 test, n = 800) | Overall | Front | Behind | Left | Right |
+|---|---:|---:|---:|---:|---:|
+| Gemma-2-2b-it (08D) | 75.38% | 100% | 100% | 6.0% | 95.5% |
+| **Gemma 4 E2B (11-C)** | **99.88%** | 100% | 99.5% | **100%** | **100%** |
+
+* Egocentric 99.75% (one *behind* item answered *left*); object-to-object 100%. Binary left/right readout 1.00 for both task types.
+* Validation (800): 100% on every direction. Validation and test agree, so there is no validation/test gap.
+* Training loss fell to ≈0 by step 225 of 500. 24.2 M trainable LoRA parameters.
+
+**Reading.** The pre-registered prediction holds on this test set. Gemma-2 lacked a linear lateral signal and LoRA could not create a usable one. Gemma 4 already had one (probe 0.85), and a small adapter made the output read it.
+
+**Caveat (important).** The V4 test reuses the training question *templates*. So 99.88% shows the lateral relation is learned for these templates, not that it generalises to new wording; the pre-registered template-overfitting check therefore remains open. Next: evaluate this adapter on the 240 freshly worded questions used for the hybrid engine (87.5%).
+
+**Files.** `finetune_summary.json` (values transcribed from the run; SHA-256 of the raw `finetune_results.json` recorded inside). The raw JSON and the LoRA adapter (`adapter_model.safetensors`, 96.7 MB) are in the Colab runtime and go to HF `Platinum04/EgoSpatial-Gemma-v2/11_evaluation/11C_finetune/gemma-4-E2B-it_qlora/` once an `HF_TOKEN` secret exists in the running Colab account.
+
+**Implementation note.** `peft.prepare_model_for_kbit_training` is not used: it upcasts Gemma 4's large embedding tables to fp32 and runs out of memory on a T4 (first attempt: OOM, 8.75 GiB).
