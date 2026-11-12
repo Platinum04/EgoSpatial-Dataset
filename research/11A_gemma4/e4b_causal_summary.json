@@ -1,0 +1,13 @@
+{
+ "_note": "Key fields transcribed from causal_results.json produced by g4_causal.py (google/gemma-4-E4B-it, NF4, transformers 5.22.1, Colab T4, 2026-11-12, 1848 s). Raw file sha256 prefix af5305fd3b361744; per-layer arrays not transcribed.",
+ "readout": {"ego_lateral_4way": 0.185, "ego_lateral_binary_left_vs_right": 0.5, "o2o_lateral_4way": 0.205, "o2o_lateral_binary_left_vs_right": 0.555,
+             "ego_lateral_4way_pred_dist": {"front": 118, "behind": 9, "left": 31, "right": 42}},
+ "probe": {"best": 0.983, "best_layer": 41, "shuffled_at_best": [0.4586, 0.5443, 0.3987, 0.469, 0.4053]},
+ "unembed_cos": {"final_layer": 0.1077, "best_layer": 0.158},
+ "hook_check_maxabs": 0.0,
+ "steering": {"-3": [-8.129, 0.165, 0.19], "-2": [-5.473, 0.2, 0.155], "-1": [-2.827, 0.205, 0.155], "-0.5": [-1.512, 0.205, 0.155],
+              "0": [-0.202, 0.21, 0.15], "0.5": [1.114, 0.225, 0.155], "1": [2.431, 0.25, 0.145], "2": [5.104, 0.325, 0.13], "3": [7.806, 0.51, 0.115]},
+ "steering_columns": ["mean_logit_R_minus_L", "frac_says_right_4way", "frac_says_left_4way"],
+ "correction": {"baseline_binary": 0.5, "baseline_4way": 0.185, "probe_readout_acc": 0.945,
+                "steer_0.5": {"binary": 0.615, "4way": 0.18}, "steer_1.0": {"binary": 0.685, "4way": 0.195}, "steer_2.0": {"binary": 0.79, "4way": 0.27}}
+}

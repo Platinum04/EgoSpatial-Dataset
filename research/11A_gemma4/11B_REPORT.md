@@ -1,8 +1,9 @@
 # 11-B — Does Gemma 4 *use* its internal left/right signal? (control, readout, causal tests)
 
-**Date:** 2026-11-11 · **Script:** `g4_causal.py` (this folder) · **Raw outputs (HF):**
-* `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/causal_results.json`
-* `11_evaluation/11A_gemma4/gemma-2-2b-it_control/`
+**Date:** 2026-11-11 (E4B: 2026-11-12) · **Script:** `g4_causal.py` (this folder) · **Raw outputs:**
+* HF: `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/causal_results.json`
+* HF: `11_evaluation/11A_gemma4/gemma-2-2b-it_control/`
+* E4B: key fields in `e4b_causal_summary.json` (this folder). The raw file (sha256 `af5305fd3b361744…`) still needs uploading from the Colab runtime.
 
 All numbers are on the identical V4 test set (n = 800). Unless stated, they use the **200 egocentric left/right items**. Probes are standardised logistic regression with 5-fold GroupKFold by object pair. Chance is 0.50.
 
@@ -47,14 +48,47 @@ All numbers are on the identical V4 test set (n = 800). Unless stated, they use 
 | binary accuracy | 0.535 | **0.81** | 0.545 | 0.545 | 0.555 |
 | 4-way accuracy | 0.33 | — | 0.345 | 0.35 | 0.38 |
 
+## 2b. Gemma 4 E4B (NF4): the same tests
+
+| check | E2B | **E4B** |
+|---|---|---|
+| 4-way answer on lateral items | 0.330 | 0.185 (pred: front 118, right 42, left 31, behind 9) |
+| binary readout (logit right vs left only) | 0.535 | **0.500** |
+| object-relative lateral, binary | 0.505 | 0.555 |
+| best probe | 0.852 @L32 | **0.983 @L41** |
+| shuffled-label probe, fixed best layer | 0.453–0.529 | 0.399–0.544 |
+| cos(μ_right − μ_left, W_right − W_left), final layer | +0.027 | **+0.108** |
+| cos, best layer | +0.066 | +0.158 |
+| hook check | 0.0 | 0.0 |
+
+**Steering in E4B** (α·(μ_right − μ_left) at L41, last token, 2-fold cross-fit over object groups):
+
+| α | −3 | −2 | −1 | −0.5 | 0 | +0.5 | +1 | +2 | +3 |
+|---|---|---|---|---|---|---|---|---|---|
+| mean logit(right) − logit(left) | −8.13 | −5.47 | −2.83 | −1.51 | −0.20 | +1.11 | +2.43 | +5.10 | **+7.81** |
+| fraction answering "right" | 0.17 | 0.20 | 0.21 | 0.21 | 0.21 | 0.23 | 0.25 | 0.33 | **0.51** |
+| fraction answering "left" | 0.19 | 0.16 | 0.16 | 0.16 | 0.15 | 0.16 | 0.15 | 0.13 | 0.12 |
+
+**Probe-guided correction in E4B** (the model's weights are unchanged):
+
+| | baseline | probe alone | steer 0.5 | steer 1.0 | steer 2.0 |
+|---|---|---|---|---|---|
+| binary accuracy | 0.500 | **0.945** | 0.615 | 0.685 | **0.790** |
+| 4-way accuracy | 0.185 | — | 0.18 | 0.195 | 0.27 |
+
 ## 3. Interpretation
 1. **Gemma 4 computes egocentric left/right internally but does not read it out.** The answer is linearly decodable (0.85) from layers that sit just before the output. They are well above both the fixed-layer shuffled baseline and the layer-search null (≈0.61). The model's own left-vs-right logit comparison is still at chance (0.535).
 2. **The reason is geometric.** The direction carrying the answer is nearly orthogonal to the output head's right-minus-left direction (cos ≈ 0.03). The information exists but points where the unembedding does not look.
-3. **Weak causal coupling.** Pushing along the latent direction moves the right-vs-left logit margin monotonically: about +2.6 logits from α = −3 to +3. So the direction is not causally inert. Still, at the strengths tested it is far too weak to change answers, and probe-guided steering improves binary accuracy only from 0.535 to 0.555.
-4. **Consequence.** The cheapest working "fix" is to *read* the latent answer with a tiny linear probe (0.81 held-out), not to push it into the output. This supports the project's architecture: let models parse, and let explicit geometry or readouts decide direction.
+3. **Causal coupling grows with the model.**
+   * **E2B:** pushing along the latent direction moves the right-vs-left margin monotonically, but only by about +2.6 logits over α = −3…+3. Probe-guided steering improves binary accuracy only from 0.535 to 0.555.
+   * **E4B:** the same intervention moves the margin by about **+15.9 logits**, and probe-guided steering raises binary accuracy from **0.50 to 0.79**. Its latent direction is also better aligned with the unembedding (cos 0.11–0.16, versus 0.03–0.07).
+   * So in the larger model the signal is not just decodable. It is causally connected to the output, and injecting it repairs most left/right decisions without any training.
+4. **What remains broken.** Four-way accuracy stays low, at most 0.27, because E4B answers "front" for most lateral items. Lateral steering does not remove that prior. Correcting lateral answers inside a free four-way choice would also need the sagittal decision handled, for example by steering or reading out both axes.
+5. **Consequence.** In E2B the only working readout is a tiny external probe (0.81). In E4B the probe reads 0.945, and steering with it repairs the model's own binary output (0.79). For a product, reading the latent answer, or computing geometry explicitly, is still more reliable than trusting the generated word.
 
 ## 4. Limitations and next steps
-* E4B causal tests (§2 for E4B) were interrupted by a Colab session limit and are still to rerun. The E4B probe numbers come from 11-A.
+* E4B ran in 4-bit NF4. A bf16 run on a larger GPU would remove that caveat.
+* The probe used for correction is a supervised readout trained on the other fold of object groups. "No training" refers to the language model's weights only.
 * Steering was single-layer, last-token and diff-of-means, with |α| ≤ 3. Still to try:
   * stronger or multi-layer steering;
   * steering at earlier layers or all positions;
