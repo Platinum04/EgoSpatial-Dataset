@@ -27,6 +27,8 @@ We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questi
    - **E2B:** forced to choose only between "left" and "right", the output head is at chance (0.535). The latent direction is almost orthogonal to the output head (cos ≈ 0.03). Steering moves the logit margin only about 2.6 logits, and probe-guided steering barely helps (0.535 → 0.555).
    - **E4B:** the output head is also at chance (0.50). But steering along the latent direction moves the margin by **about 16 logits**, and probe-guided steering raises left/right accuracy from **0.50 to 0.79**, without changing any model weights. A probe alone reads the answer at 0.945.
 
+   - **Fine-tuning (11-C):** the same V4 LoRA recipe that failed on Gemma-2 reaches **99.88%** on the untouched V4 test with Gemma 4 E2B, **left and right both 100%**. Caveat: the V4 test reuses the training templates; generalisation to fresh wording is not yet measured. Report: [`research/11C_finetune/`](research/11C_finetune/).
+
    So newer models increasingly *compute* the lateral relation without *saying* it. In the larger model that hidden signal is causally connected to the output and can be injected to repair most left/right decisions. Reports: [`research/11A_gemma4/`](research/11A_gemma4/).
 6. **Architecture decision.** Geometry is computed by a deterministic engine. The language model is used only to turn free-form questions into a structured query, its output is validated, and the engine abstains instead of guessing.
 
@@ -34,6 +36,7 @@ We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questi
 |---|---:|---:|---:|---:|---:|
 | Gemma-2-2b-it + V4 LoRA | 75.38% | 100% | 100% | 6.0% | 95.5% |
 | + targeted lateral intervention | 76.25% | 100% | 100% | 50.0% | 55.0% |
+| Gemma 4 E2B + V4 LoRA (11-C) | 99.88% | 100% | 99.5% | 100% | 100% |
 | Hybrid engine (this repo) | 100% | 100% | 100% | 100% | 100% |
 
 The V4 test reuses the training question templates, so the hybrid's 100% reflects correct template parsing plus exact geometry. Language robustness is measured separately on **240 freshly worded questions**: the hybrid with the Gemma parser scores **87.5%** (egocentric 98.3%, object-relative 76.9%). Every error is a question-parsing error, never a geometry error.

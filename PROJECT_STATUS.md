@@ -1,6 +1,6 @@
 # EgoSpatial-Gemma — PROJECT STATUS
 
-_Last updated: 2026-11-12 (11-B complete: E4B steering repairs left/right 0.50 → 0.79; native Android XR app builds in CI)_
+_Last updated: 2026-11-12 (11-C: Gemma 4 E2B + V4 LoRA reaches 99.88% on the untouched test, left/right 100%; 11-B: E4B steering repairs left/right 0.50 → 0.79)_
 
 ## Repositories
 | Purpose | Location | Access |
@@ -27,6 +27,7 @@ _Last updated: 2026-11-12 (11-B complete: E4B steering repairs left/right 0.50 �
 | 10 | XR integration | ◐ EgoSpatial Live deployed. It reads real room semantics via WebXR plane/mesh detection and is verified in an emulated Quest 3 (IWER). A Quest 3S recording is pending | Space, `engine/examples/webxr-live/`, `engine/ports/` |
 | 11-A | Gemma 4 replication (zero-shot + layer-wise probes) | ✓ E2B, E4B (NF4) and the Gemma-2 base control | `11_evaluation/11A_gemma4/` |
 | 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal); Gemma-2 permutation control | ✓ E2B, E4B (NF4) and the Gemma-2 control; E4B raw JSON still to upload from the runtime | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
+| 11-C | Gemma 4 E2B LoRA fine-tune (V4 recipe, QLoRA on a T4) | ✓ 99.88% untouched test; fresh-wording eval pending; adapter upload to HF pending (needs HF token in the running Colab account) | GitHub `research/11C_finetune/`; HF `11_evaluation/11C_finetune/` |
 | 13 | Native Android XR app (Jetpack Compose for XR) | ◐ Builds and tests in CI (APK artifact); emulator/device run pending | GitHub `android-xr/` |
 | 11 | Evaluation (fresh phrasings, latency, invalid inputs, cross-platform) | ✓ | `11_evaluation/` |
 | 12 | Documentation + release v1.0.1 | ✓ | GitHub `engine/docs/`, `engine/RELEASE_NOTES.md` |
@@ -36,6 +37,7 @@ _Last updated: 2026-11-12 (11-B complete: E4B steering repairs left/right 0.50 �
 |---|---:|---:|---:|---:|---:|
 | Gemma-2-2b-it + V4 LoRA | 75.38% | 100% | 100% | 6.0% | 95.5% |
 | + 08D lateral intervention | 76.25% | 100% | 100% | 50.0% | 55.0% |
+| Gemma 4 E2B + V4 LoRA (11-C) | 99.88% | 100% | 99.5% | 100% | 100% |
 | Hybrid engine | 100% | 100% | 100% | 100% | 100% |
 
 - **08D-6A:** 379/400 lateral test answers of V4 are exact bf16 ties (logits ≈29.75 near the 30.0 softcap) that decode as `right`. fp32 margins are uninformative (AUC 0.586).
@@ -55,6 +57,8 @@ _Last updated: 2026-11-12 (11-B complete: E4B steering repairs left/right 0.50 �
   - Steering is monotonic but weak: Δmargin ≈ +2.6 over α ∈ [−3, 3]. Probe-guided steering reaches 0.555. The probe readout alone reaches 0.81.
   - **E4B (NF4):** binary readout 0.50. Probe 0.983, probe readout 0.945. cos(latent, unembedding) = 0.11–0.16. Steering Δmargin ≈ +15.9. **Probe-guided steering takes binary accuracy from 0.50 to 0.79**; 4-way accuracy reaches only 0.27, because of the "front" prior.
 
+- **11-C Gemma 4 E2B + V4 LoRA:** untouched test 99.88% (egocentric 99.75%, object-to-object 100%; left 100%, right 100%; one behind→left error). Validation 100%. Loss ≈0 by step 225/500. Same recipe on Gemma-2 gave left 6%. Caveat: V4 test shares training templates.
+
 ## Remaining work
 1. **Quest 3S recording of EgoSpatial Live:** run Space Setup, open the demo in Quest Browser, Start Mixed Reality, turn around, pinch, and record 30–60 s.
 2. **Android XR app:** built (GitHub `android-xr/`, APK from Actions). Still to do: run it on the Android XR emulator or a device and record it, then add live ARCore planes.
@@ -63,7 +67,7 @@ _Last updated: 2026-11-12 (11-B complete: E4B steering repairs left/right 0.50 �
    - Upload the E4B raw `causal_results.json` from the Colab runtime to HF (needs an HF token in that account).
    - Try stronger or multi-layer steering.
    - Do a matched probe rerun on the V4 adapter.
-   - Fine-tune Gemma 4 E2B with the V4 recipe.
+   - ~~Fine-tune Gemma 4 E2B with the V4 recipe~~ done (11-C). Next: evaluate the adapter on the 240 fresh phrasings; upload adapter + raw JSON to HF.
    - Write the paper.
 5. **Parser:** constrained JSON decoding or a trained parser; show the parsed query in the UI.
 6. **Real-world evaluation** with perception noise.
