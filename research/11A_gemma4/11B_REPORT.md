@@ -17,7 +17,7 @@ All numbers are on the identical V4 test set (n = 800). Unless stated, they use 
 **Under this protocol** the best-layer lateral score rises with model generation and size (0.69 → 0.85 → 0.98). Zero-shot four-way accuracy stays at or below the 0.25 random-guess level in all three models.
 
 **Two caveats on the best-layer numbers.**
-1. A best-layer score is a maximum over layers, so its proper null also searches over layers. The layer-search permutation control in `11A_REPORT.md` (`probe_control.py`, nine-permutation smoke check) put the highest shuffled maximum at 0.608 (E2B) and 0.622 (E4B). Both Gemma 4 models clear that comfortably. Base Gemma 2's 0.69 sits much closer and still needs the same permutation run before it is treated as a real signal.
+1. A best-layer score is a maximum over layers, so its proper null also searches over layers. The layer-search permutation control in `11A_REPORT.md` (`probe_control.py`, nine-permutation smoke check) put the highest shuffled maximum at 0.608 (E2B) and 0.622 (E4B). Both Gemma 4 models clear that comfortably. For base Gemma 2, a 49-permutation layer-search run (`gemma-2-2b-it_control/probe_control_49.json` on HF) gives an observed maximum of 0.690 against a null mean of 0.553 (null maximum 0.616), p = 0.02, the minimum possible with 49 permutations. So base Gemma 2 carries a real but much weaker lateral signal.
 2. 08D-6 used a different protocol: ridge probes on the V4 validation split, covering base and fine-tuned Gemma 2. Absolute scores should only be compared within one protocol.
 
 ## 2. Gemma 4 E2B: readout, baseline, alignment, causality
@@ -59,5 +59,5 @@ All numbers are on the identical V4 test set (n = 800). Unless stated, they use 
   * stronger or multi-layer steering;
   * steering at earlier layers or all positions;
   * a direction learned to maximise the output-margin shift.
-* Still to run: the layer-search permutation control for base Gemma 2 (`probe_control.py --permutations 99` on its archived `hidden_last_token.npz`), and the full 99-permutation run for Gemma 4.
+* Still to run: the full 99-permutation layer-search control for Gemma 4 E2B and E4B. Base Gemma 2 is done (49 permutations, p = 0.02).
 * The setting is synthetic: four cardinal directions and a templated scene description.
