@@ -26,7 +26,7 @@ _Last updated: 2026-11-11 (11-B Gemma 4 causal study + Gemma-2 control; native A
 | 09 | Portable engine package (Python + JS/C#/Kotlin ports, HTTP API) | ✓ | `engine/egospatial-1.0.1/`, GitHub `engine/` |
 | 10 | XR integration | ◐ EgoSpatial Live deployed. It reads real room semantics via WebXR plane/mesh detection and is verified in an emulated Quest 3 (IWER). A Quest 3S recording is pending | Space, `engine/examples/webxr-live/`, `engine/ports/` |
 | 11-A | Gemma 4 replication (zero-shot + layer-wise probes) | ✓ E2B, E4B (NF4) and the Gemma-2 base control | `11_evaluation/11A_gemma4/` |
-| 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal) | ◐ E2B done; E4B rerun pending (Colab session limit) | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
+| 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal); Gemma-2 permutation control | ◐ E2B + Gemma-2 control done; E4B rerun pending (Colab session limit) | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
 | 13 | Native Android XR app (Jetpack Compose for XR) | ◐ Builds and tests in CI (APK artifact); emulator/device run pending | GitHub `android-xr/` |
 | 11 | Evaluation (fresh phrasings, latency, invalid inputs, cross-platform) | ✓ | `11_evaluation/` |
 | 12 | Documentation + release v1.0.1 | ✓ | GitHub `engine/docs/`, `engine/RELEASE_NOTES.md` |
@@ -50,7 +50,7 @@ _Last updated: 2026-11-11 (11-B Gemma 4 causal study + Gemma-2 control; native A
   - So Gemma 4 computes the lateral relation internally but does not output it. The Gemma-2 base control is still to run. See `11_evaluation/11A_gemma4/11A_REPORT.md`.
 
 - **11-B.**
-  - Base Gemma-2 lateral probe: 0.69 (layer-search permutation control pending), vs 0.85 for E2B and 0.98 for E4B. Layer-search null for Gemma 4: ≈0.61.
+  - Base Gemma-2 lateral probe: 0.69 (layer-search null mean 0.55, max 0.62, p = 0.02 with 49 permutations), vs 0.85 for E2B and 0.98 for E4B. Layer-search null for Gemma 4: ≈0.61.
   - E2B binary left/right readout: 0.535. Shuffled probe baseline: 0.45–0.53. cos(latent direction, unembedding difference) = 0.03.
   - Steering is monotonic but weak: Δmargin ≈ +2.6 over α ∈ [−3, 3]. Probe-guided steering reaches 0.555. The probe readout alone reaches 0.81.
 

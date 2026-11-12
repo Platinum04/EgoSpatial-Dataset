@@ -19,7 +19,7 @@ We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questi
 
    | Model | Zero-shot accuracy (four-way; random = 25%) | Best-layer linear probe (object-pair-grouped CV) |
    |---|---|---|
-   | Gemma-2-2b-it base | 21% | 0.69 (layer-search permutation control pending) |
+   | Gemma-2-2b-it base | 21% | 0.69 (layer-search null mean 0.55, p = 0.02) |
    | Gemma 4 E2B | 34% | 0.85 |
    | Gemma 4 E4B (4-bit) | 18% | **0.98** |
 
