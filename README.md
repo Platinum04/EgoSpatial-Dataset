@@ -23,13 +23,11 @@ We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questi
    | Gemma 4 E2B | 34% | 0.85 |
    | Gemma 4 E4B (4-bit) | 18% | **0.98** |
 
-   For Gemma 4 E2B:
-   - **Forced to choose only between "left" and "right", the output head is at chance (0.535).** The probe beats both a fixed-layer shuffled baseline (≈0.49) and a layer-search permutation null (≈0.61).
-   - **The latent direction is almost orthogonal to the output head's right-minus-left direction** (cos ≈ 0.03).
-   - **Steering along it shifts the logit margin monotonically but too weakly to flip answers.** Probe-guided steering takes accuracy from 0.535 to only 0.555.
-   - **A tiny linear readout recovers 0.81 on held-out objects.**
+   Causal tests (11-B):
+   - **E2B:** forced to choose only between "left" and "right", the output head is at chance (0.535). The latent direction is almost orthogonal to the output head (cos ≈ 0.03). Steering moves the logit margin only about 2.6 logits, and probe-guided steering barely helps (0.535 → 0.555).
+   - **E4B:** the output head is also at chance (0.50). But steering along the latent direction moves the margin by **about 16 logits**, and probe-guided steering raises left/right accuracy from **0.50 to 0.79**, without changing any model weights. A probe alone reads the answer at 0.945.
 
-   So newer models increasingly *compute* the lateral relation but do not *say* it. Reports: [`research/11A_gemma4/`](research/11A_gemma4/).
+   So newer models increasingly *compute* the lateral relation without *saying* it. In the larger model that hidden signal is causally connected to the output and can be injected to repair most left/right decisions. Reports: [`research/11A_gemma4/`](research/11A_gemma4/).
 6. **Architecture decision.** Geometry is computed by a deterministic engine. The language model is used only to turn free-form questions into a structured query, its output is validated, and the engine abstains instead of guessing.
 
 | System (untouched V4 test, n = 800) | Overall | Front | Behind | Left | Right |

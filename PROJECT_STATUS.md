@@ -1,6 +1,6 @@
 # EgoSpatial-Gemma — PROJECT STATUS
 
-_Last updated: 2026-11-12 (11-B Gemma 4 causal study + Gemma-2 control; native Android XR app builds in CI)_
+_Last updated: 2026-11-12 (11-B complete: E4B steering repairs left/right 0.50 → 0.79; native Android XR app builds in CI)_
 
 ## Repositories
 | Purpose | Location | Access |
@@ -26,7 +26,7 @@ _Last updated: 2026-11-12 (11-B Gemma 4 causal study + Gemma-2 control; native A
 | 09 | Portable engine package (Python + JS/C#/Kotlin ports, HTTP API) | ✓ | `engine/egospatial-1.0.1/`, GitHub `engine/` |
 | 10 | XR integration | ◐ EgoSpatial Live deployed. It reads real room semantics via WebXR plane/mesh detection and is verified in an emulated Quest 3 (IWER). A Quest 3S recording is pending | Space, `engine/examples/webxr-live/`, `engine/ports/` |
 | 11-A | Gemma 4 replication (zero-shot + layer-wise probes) | ✓ E2B, E4B (NF4) and the Gemma-2 base control | `11_evaluation/11A_gemma4/` |
-| 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal); Gemma-2 permutation control | ◐ E2B + Gemma-2 control done; E4B rerun pending (Colab session limit) | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
+| 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal); Gemma-2 permutation control | ✓ E2B, E4B (NF4) and the Gemma-2 control; E4B raw JSON still to upload from the runtime | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
 | 13 | Native Android XR app (Jetpack Compose for XR) | ◐ Builds and tests in CI (APK artifact); emulator/device run pending | GitHub `android-xr/` |
 | 11 | Evaluation (fresh phrasings, latency, invalid inputs, cross-platform) | ✓ | `11_evaluation/` |
 | 12 | Documentation + release v1.0.1 | ✓ | GitHub `engine/docs/`, `engine/RELEASE_NOTES.md` |
@@ -53,13 +53,14 @@ _Last updated: 2026-11-12 (11-B Gemma 4 causal study + Gemma-2 control; native A
   - Base Gemma-2 lateral probe: 0.69 (layer-search null mean 0.55, max 0.62, p = 0.02 with 49 permutations), vs 0.85 for E2B and 0.98 for E4B. Layer-search null for Gemma 4: ≈0.61.
   - E2B binary left/right readout: 0.535. Shuffled probe baseline: 0.45–0.53. cos(latent direction, unembedding difference) = 0.03.
   - Steering is monotonic but weak: Δmargin ≈ +2.6 over α ∈ [−3, 3]. Probe-guided steering reaches 0.555. The probe readout alone reaches 0.81.
+  - **E4B (NF4):** binary readout 0.50. Probe 0.983, probe readout 0.945. cos(latent, unembedding) = 0.11–0.16. Steering Δmargin ≈ +15.9. **Probe-guided steering takes binary accuracy from 0.50 to 0.79**; 4-way accuracy reaches only 0.27, because of the "front" prior.
 
 ## Remaining work
 1. **Quest 3S recording of EgoSpatial Live:** run Space Setup, open the demo in Quest Browser, Start Mixed Reality, turn around, pinch, and record 30–60 s.
 2. **Android XR app:** built (GitHub `android-xr/`, APK from Actions). Still to do: run it on the Android XR emulator or a device and record it, then add live ARCore planes.
 3. **Unity / Quest 3S** build using `engine/ports/unity/`.
 4. **Research:**
-   - Rerun 11-B on E4B.
+   - Upload the E4B raw `causal_results.json` from the Colab runtime to HF (needs an HF token in that account).
    - Try stronger or multi-layer steering.
    - Do a matched probe rerun on the V4 adapter.
    - Fine-tune Gemma 4 E2B with the V4 recipe.
