@@ -1,6 +1,6 @@
 # EgoSpatial-Gemma — PROJECT STATUS
 
-_Last updated: 2026-11-11 (11-B Gemma 4 causal study + Gemma-2 control; native Android XR app builds in CI)_
+_Last updated: 2026-11-12 (11-B Gemma 4 causal study + Gemma-2 control; native Android XR app builds in CI)_
 
 ## Repositories
 | Purpose | Location | Access |
@@ -47,7 +47,7 @@ _Last updated: 2026-11-11 (11-B Gemma 4 causal study + Gemma-2 control; native A
   - Egocentric left/right: E2B 34%, E4B 18% (E4B mostly answers "front"; random four-way = 25%).
   - Linear probes (GroupKFold by object pair) recover egocentric left/right from the late layers: E2B 0.852 @L32/35, E4B 0.983 @L41/42.
   - Front/behind reaches 1.000 by the middle layers.
-  - So Gemma 4 computes the lateral relation internally but does not output it. The Gemma-2 base control is still to run. See `11_evaluation/11A_gemma4/11A_REPORT.md`.
+  - So Gemma 4 computes the lateral relation internally but does not output it. See `11_evaluation/11A_gemma4/11A_REPORT.md`.
 
 - **11-B.**
   - Base Gemma-2 lateral probe: 0.69 (layer-search null mean 0.55, max 0.62, p = 0.02 with 49 permutations), vs 0.85 for E2B and 0.98 for E4B. Layer-search null for Gemma 4: ≈0.61.
@@ -56,7 +56,7 @@ _Last updated: 2026-11-11 (11-B Gemma 4 causal study + Gemma-2 control; native A
 
 ## Remaining work
 1. **Quest 3S recording of EgoSpatial Live:** run Space Setup, open the demo in Quest Browser, Start Mixed Reality, turn around, pinch, and record 30–60 s.
-2. **Android XR app** (Jetpack XR) built on `engine/ports/android/EgoSpatial.kt`. Run it on a device or the Android XR emulator and record.
+2. **Android XR app:** built (GitHub `android-xr/`, APK from Actions). Still to do: run it on the Android XR emulator or a device and record it, then add live ARCore planes.
 3. **Unity / Quest 3S** build using `engine/ports/unity/`.
 4. **Research:**
    - Rerun 11-B on E4B.
