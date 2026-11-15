@@ -83,7 +83,7 @@ function speak(text) {
 // ------------------------------------------------------------------ VOICE CLIPS (Quest Browser has no text-to-speech)
 // Pre-recorded phrases (voice-clips.js), chained with Web Audio. The AudioContext is created inside the
 // "Start Mixed Reality" click so the browser allows sound.
-const clips = { ctx: null, cache: new Map(), playing: [] };
+const clips = { ctx: null, cache: new Map(), playing: [], endsAt: 0 };
 function unlockAudio() {
   try {
     if (!clips.ctx) clips.ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -111,7 +111,9 @@ async function playClips(names) {
     const s = clips.ctx.createBufferSource(); s.buffer = b; s.connect(clips.ctx.destination); s.start(t);
     clips.playing.push(s); t += b.duration + 0.12;
   }
+  clips.endsAt = t;
 }
+const stillTalking = () => !!clips.ctx && clips.ctx.currentTime < clips.endsAt;
 // preload the fixed phrases once audio is unlocked
 const PRELOAD = ["intro", "none", "and", "placed", "hdr_left", "hdr_right", "hdr_behind", "hdr_front",
   ...Array.from({ length: 11 }, (_, i) => `d_${i}`)];
@@ -229,7 +231,7 @@ async function startXR() {
         setLabel(hud, n ? L.compassLine(latest.relations) : "EgoSpatial Live",
           n ? `${n} object${n === 1 ? "" : "s"} · pinch to hear · turn to update` : (waiting ? "No room data: pinch at a surface to place" : "Scanning your room…"), "#5aa9ff");
         const now = performance.now();
-        if (n && latest.heading != null && now - lastSpokeAt > 5000 &&
+        if (n && latest.heading != null && now - lastSpokeAt > 5000 && !stillTalking() &&
             (spokenHeading == null || L.headingDelta(latest.heading, spokenHeading) >= 80)) saySummary();
       }
     }
