@@ -74,5 +74,18 @@ if (fs.existsSync(vf)) {
   ok(!missing.length, "voice clips present: missing " + missing);
 }
 
+// A 2 m bed reported as 4 pieces (plane + split meshes) becomes one bed; a second bed 3 m away stays separate.
+const beds = L.dedupe([
+  { id: "bed", label: "bed", position: [0, 0.5, 0], radius: 1.0 }, { id: "bed 2", label: "bed", position: [0.8, 0.3, 0.2], radius: 0.4 },
+  { id: "bed 3", label: "bed", position: [-0.8, 0.3, -0.1], radius: 0.4 }, { id: "bed 4", label: "bed", position: [1.3, 0.2, 0.5], radius: 0.3 },
+  { id: "bed 5", label: "bed", position: [4.5, 0.5, 0], radius: 1.0 }]);
+ok(beds.length === 2 && beds[0].id === "bed" && beds[1].id === "bed 5", "split bed merged: " + beds.map(b => b.id));
+ok(Math.abs(L.footprintRadius([[0, 0], [2, 0], [2, 1], [0, 1]]) - 1) < 1e-9 && L.footprintRadius([]) === 0, "footprint radius");
+// plane polygons give the footprint: a big bed plane and a mesh piece 1.0 m away merge
+const bedPlane = { semanticLabel: "bed", planeSpace: { p: [0, 0.5, 0] }, polygon: [{ x: -1, z: -0.7 }, { x: 1, z: -0.7 }, { x: 1, z: 0.7 }, { x: -1, z: 0.7 }] };
+const bedMesh = { semanticLabel: "bed", meshSpace: { p: [1.0, 0, 0] }, vertices: new Float32Array([-0.2, 0, -0.2, 0.2, 0.5, 0.2]) };
+const fb = { detectedPlanes: new Set([bedPlane]), detectedMeshes: new Set([bedMesh]), getPose: (space) => poseAt(...space.p) };
+ok(L.collectObjects(fb, {}, L.createRegistry(), []).length === 1, "bed plane + mesh piece merged via footprint");
+
 console.log(`EgoSpatial Live logic: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

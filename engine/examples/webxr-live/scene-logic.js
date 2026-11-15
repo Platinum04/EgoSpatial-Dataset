@@ -51,36 +51,51 @@
    */
   function collectObjects(frame, refSpace, idFor, placed) {
     const out = [];
-    const take = (entity, space, label, local) => {
+    const take = (entity, space, label, local, radius) => {
       if (SKIP.has(String(label || "").toLowerCase())) return;
       const pose = frame.getPose(space, refSpace); if (!pose) return;
       const nice = prettyLabel(label);
       const p = local ? transformPoint(pose.transform.matrix, local[0], local[1], local[2])
                       : [pose.transform.position.x, pose.transform.position.y, pose.transform.position.z];
-      out.push({ id: idFor(entity, nice), label: nice, position: p });
+      out.push({ id: idFor(entity, nice), label: nice, position: p, radius });
     };
-    if (frame.detectedPlanes) for (const pl of frame.detectedPlanes) take(pl, pl.planeSpace, pl.semanticLabel, null);
+    if (frame.detectedPlanes) for (const pl of frame.detectedPlanes)
+      take(pl, pl.planeSpace, pl.semanticLabel, null, footprintRadius(pl.polygon ? Array.from(pl.polygon, (q) => [q.x, q.z]) : []));
     if (frame.detectedMeshes) for (const me of frame.detectedMeshes) {
       if (!me.semanticLabel) continue;                 // unlabelled room mesh: skip
-      take(me, me.meshSpace, me.semanticLabel, me.vertices ? centroid(me.vertices) : null);
+      const v = me.vertices, pts = [];
+      if (v) for (let i = 0; i + 2 < v.length; i += 3) pts.push([v[i], v[i + 2]]);
+      take(me, me.meshSpace, me.semanticLabel, v ? centroid(v) : null, footprintRadius(pts));
     }
     for (const p of placed || []) out.push({ id: p.id, label: p.label, position: p.position.slice(), source: "placed" });
     return dedupe(out);
   }
 
+  /** Half the larger side of the horizontal bounding box of [x,z] points (0 if none). */
+  function footprintRadius(pts) {
+    if (!pts.length) return 0;
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+    for (const [x, z] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+    return Math.max(x1 - x0, z1 - z0) / 2;
+  }
+
   /**
-   * Quest often reports one piece of furniture twice (a plane for its top AND a mesh for its volume).
-   * Merge same-label room objects whose floor positions are within `radius` metres; keep the first.
-   * User-placed objects are never merged.
+   * Quest often reports one piece of furniture several times (a plane for its top, a mesh for its volume,
+   * or a large bed split into pieces). Merge same-label room objects whose footprints overlap: centres
+   * closer than the sum of their footprint radii, and never less than `minRadius`. The merged object sits at
+   * the average of its parts. User-placed objects are never merged.
    */
-  function dedupe(objects, radius = 0.6) {
-    const kept = [];
+  function dedupe(objects, minRadius = 0.6) {
+    const groups = [];
     for (const o of objects) {
-      const dup = o.source !== "placed" && kept.find((k) => k.source !== "placed" && k.label === o.label &&
-        Math.hypot(k.position[0] - o.position[0], k.position[2] - o.position[2]) < radius);
-      if (!dup) kept.push(o);
+      const g = o.source !== "placed" && groups.find((k) => k.source !== "placed" && k.label === o.label &&
+        Math.hypot(k.position[0] - o.position[0], k.position[2] - o.position[2]) < Math.max(minRadius, (k.radius || 0) + (o.radius || 0)));
+      if (!g) { groups.push({ ...o, position: o.position.slice(), _n: 1 }); continue; }
+      g.position = g.position.map((c, i) => (c * g._n + o.position[i]) / (g._n + 1)); g._n += 1;
+      // grow the group's footprint so later pieces of the same object also merge
+      g.radius = Math.max(g.radius || 0, o.radius || 0) + Math.hypot(g.position[0] - o.position[0], g.position[2] - o.position[2]) / 2;
     }
-    return kept;
+    return groups.map(({ _n, ...o }) => o);
   }
 
   /** Relations for every object from the current viewer pose. Objects at the viewer's own spot are dropped. */
@@ -161,5 +176,5 @@
     return `The ${hit.label} is ${PHRASE[hit.direction]}, about ${hit.distance.toFixed(1)} metres away.`;
   }
 
-  return { collectObjects, dedupe, relationsFor, summarySentence, summaryTokens, compassLine, headingDelta, answerFor, createRegistry, prettyLabel, transformPoint, centroid, PHRASE };
+  return { collectObjects, dedupe, footprintRadius, relationsFor, summarySentence, summaryTokens, compassLine, headingDelta, answerFor, createRegistry, prettyLabel, transformPoint, centroid, PHRASE };
 });
