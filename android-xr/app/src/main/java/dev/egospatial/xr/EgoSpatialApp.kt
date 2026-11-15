@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -78,7 +79,7 @@ private fun colorFor(direction: String) = when (direction) {
 /**
  * EgoSpatial XR: where is everything around me?
  * On Android XR (Full Space) the room map and the relations panel are two movable, resizable spatial panels.
- * On a phone or tablet the same UI is shown side by side. Every direction comes from the deterministic engine.
+ * On a tablet or in landscape the same UI is shown side by side; on a phone in portrait, map above panel. Every direction comes from the deterministic engine.
  */
 @Composable
 fun EgoSpatialApp() {
@@ -135,10 +136,22 @@ fun EgoSpatialApp() {
         }
     } else {
         Surface(Modifier.fillMaxSize()) {
-            Row(Modifier.fillMaxSize().padding(16.dp)) {
-                Box(Modifier.weight(1f).fillMaxHeight()) { map() }
-                Spacer(Modifier.width(16.dp))
-                Box(Modifier.width(380.dp).fillMaxHeight()) { side() }
+            BoxWithConstraints(Modifier.fillMaxSize().padding(16.dp)) {
+                if (maxWidth >= 700.dp) {
+                    // tablet / landscape: map and panel side by side
+                    Row(Modifier.fillMaxSize()) {
+                        Box(Modifier.weight(1f).fillMaxHeight()) { map() }
+                        Spacer(Modifier.width(16.dp))
+                        Box(Modifier.width(380.dp).fillMaxHeight()) { side() }
+                    }
+                } else {
+                    // phone portrait: map on top, panel below (a fixed-width side panel left the map ~0 dp wide)
+                    Column(Modifier.fillMaxSize()) {
+                        Box(Modifier.fillMaxWidth().weight(0.42f)) { map() }
+                        Spacer(Modifier.height(8.dp))
+                        Box(Modifier.fillMaxWidth().weight(0.58f)) { side() }
+                    }
+                }
             }
         }
     }
