@@ -117,6 +117,28 @@
     return parts.join(". ") + ".";
   }
 
+  // Labels that have a pre-recorded voice clip (audio/lbl_<label>.mp3); anything else is spoken as "the object".
+  const CLIP_LABELS = new Set(["table", "couch", "door", "window", "storage", "bed", "screen", "lamp", "plant", "wall art",
+    "object", "chair", "desk", "sofa", "shelf", "mug"]);
+
+  /**
+   * The same summary as summarySentence, as a list of voice-clip names (audio/<name>.mp3).
+   * Used where the browser has no text-to-speech (Meta Quest Browser).
+   */
+  function summaryTokens(relations, perGroup = 2) {
+    if (!relations.length) return ["none"];
+    const out = [];
+    for (const dir of ORDER) {
+      const g = relations.filter((r) => r.direction === dir).sort((a, b) => a.distance - b.distance).slice(0, perGroup);
+      g.forEach((r, i) => {
+        if (i === 0) out.push(`hdr_${dir}`); else out.push("and");
+        out.push("lbl_" + (CLIP_LABELS.has(r.label) ? r.label : "object").replace(/ /g, "_"));
+        out.push(`d_${Math.min(10, Math.round(r.distance))}`);
+      });
+    }
+    return out;
+  }
+
   /** One-line compass for the heads-up panel: nearest object per direction, e.g. "◀ door · ▶ bed · ▼ window". */
   function compassLine(relations) {
     const ICON = { left: "◀", right: "▶", behind: "▼", front: "▲" };
@@ -139,5 +161,5 @@
     return `The ${hit.label} is ${PHRASE[hit.direction]}, about ${hit.distance.toFixed(1)} metres away.`;
   }
 
-  return { collectObjects, dedupe, relationsFor, summarySentence, compassLine, headingDelta, answerFor, createRegistry, prettyLabel, transformPoint, centroid, PHRASE };
+  return { collectObjects, dedupe, relationsFor, summarySentence, summaryTokens, compassLine, headingDelta, answerFor, createRegistry, prettyLabel, transformPoint, centroid, PHRASE };
 });

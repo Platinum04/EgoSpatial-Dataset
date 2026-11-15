@@ -80,6 +80,42 @@ function speak(text) {
   } catch (e) { /* speech unavailable: text is still shown */ }
 }
 
+// ------------------------------------------------------------------ VOICE CLIPS (Quest Browser has no text-to-speech)
+// Pre-recorded phrases (voice-clips.js), chained with Web Audio. The AudioContext is created inside the
+// "Start Mixed Reality" click so the browser allows sound.
+const clips = { ctx: null, cache: new Map(), playing: [] };
+function unlockAudio() {
+  try {
+    if (!clips.ctx) clips.ctx = new (window.AudioContext || window.webkitAudioContext)();
+    if (clips.ctx.state === "suspended") clips.ctx.resume();
+    const b = clips.ctx.createBuffer(1, 1, 22050), s = clips.ctx.createBufferSource(); // silent blip: unlocks iOS/Quest audio
+    s.buffer = b; s.connect(clips.ctx.destination); s.start(0);
+  } catch (e) { /* no Web Audio */ }
+}
+function clip(name) {
+  if (!clips.cache.has(name)) {
+    const b64 = (window.EGO_VOICE || {})[name];
+    clips.cache.set(name, !b64 ? Promise.resolve(null) : clips.ctx.decodeAudioData(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)).buffer).catch(() => null));
+  }
+  return clips.cache.get(name);
+}
+async function playClips(names) {
+  if (!clips.ctx) return;
+  if (clips.ctx.state === "suspended") await clips.ctx.resume().catch(() => {});
+  for (const s of clips.playing) { try { s.stop(); } catch (e) { /* already ended */ } }
+  clips.playing = [];
+  const bufs = await Promise.all(names.map(clip));
+  let t = clips.ctx.currentTime + 0.05;
+  for (const b of bufs) {
+    if (!b) continue;
+    const s = clips.ctx.createBufferSource(); s.buffer = b; s.connect(clips.ctx.destination); s.start(t);
+    clips.playing.push(s); t += b.duration + 0.12;
+  }
+}
+// preload the fixed phrases once audio is unlocked
+const PRELOAD = ["intro", "none", "and", "placed", "hdr_left", "hdr_right", "hdr_behind", "hdr_front",
+  ...Array.from({ length: 11 }, (_, i) => `d_${i}`)];
+
 // ------------------------------------------------------------------ LIVE MIXED REALITY
 const xrBtn = $("xrBtn");
 (async () => {
@@ -142,17 +178,19 @@ async function startXR() {
   let lastHit = null, latest = { relations: [] }, lastUpdate = 0, startedAt = performance.now(), sawRoomData = false;
   // auto-speak: once when objects first appear, then whenever you turn by 80° or more (at most every 5 s)
   let spokenHeading = null, lastSpokeAt = 0;
-  const say = (text) => { speak(text); lastSpokeAt = performance.now(); if (latest.heading != null) spokenHeading = latest.heading; };
+  // in mixed reality always use the voice clips: Quest Browser has no speech synthesis
+  const say = (text, tokens) => { $("said").textContent = text; playClips(tokens); lastSpokeAt = performance.now(); if (latest.heading != null) spokenHeading = latest.heading; };
+  const saySummary = () => say(L.summarySentence(latest.relations), L.summaryTokens(latest.relations));
 
   session.addEventListener("select", () => {
     const fromRoom = latest.relations.some((r) => !placed.find((p) => p.id === r.id));
-    if (!fromRoom && lastHit) placeAtHit(); else say(L.summarySentence(latest.relations));
+    if (!fromRoom && lastHit) placeAtHit(); else saySummary();
   });
   session.addEventListener("squeeze", () => { if (lastHit) placeAtHit(); });
   function placeAtHit() {
     const p = lastHit.transform.position, label = LABELS[placed.length % LABELS.length];
     placed.push({ id: `${label} ${placed.length + 1}`, label, position: [p.x, p.y, p.z] });
-    speak(`Placed ${label}.`);
+    say(`Placed ${label}.`, ["placed"]);
   }
 
   renderer.setAnimationLoop((t, frame) => {
@@ -192,7 +230,7 @@ async function startXR() {
           n ? `${n} object${n === 1 ? "" : "s"} · pinch to hear · turn to update` : (waiting ? "No room data: pinch at a surface to place" : "Scanning your room…"), "#5aa9ff");
         const now = performance.now();
         if (n && latest.heading != null && now - lastSpokeAt > 5000 &&
-            (spokenHeading == null || L.headingDelta(latest.heading, spokenHeading) >= 80)) say(L.summarySentence(latest.relations));
+            (spokenHeading == null || L.headingDelta(latest.heading, spokenHeading) >= 80)) saySummary();
       }
     }
     renderer.render(scene, camera);
@@ -203,6 +241,6 @@ async function startXR() {
     $("mode").className = "badge sim"; $("mode").textContent = "SIMULATED";
   });
   $("mode").className = "badge live"; $("mode").textContent = "LIVE DEVICE PERCEPTION";
-  say("EgoSpatial Live started. Turn around, or pinch your thumb and index finger, to hear where things are.");
+  say("EgoSpatial Live started. Turn around, or pinch, to hear where things are.", ["intro"]);
 }
-xrBtn.onclick = () => startXR().catch((e) => { $("said").textContent = "Could not start mixed reality: " + e.message; });
+xrBtn.onclick = () => { unlockAudio(); PRELOAD.forEach((n) => clips.ctx && clip(n)); return startXR().catch((e) => { $("said").textContent = "Could not start mixed reality: " + e.message; }); };

@@ -58,5 +58,21 @@ ok(L.answerFor(R.relations, "where is the piano") === null, "unknown object");
 R = L.relationsFor([0, 1.6, 0], [0, 0, 0, 1], [{ id: "x", label: "x", position: [0, 0, 0] }]);
 ok(R.relations.length === 0, "object at viewer dropped");
 
+// Voice-clip tokens mirror the spoken summary and only use clips that exist.
+const fs = require("fs"), path = require("path");
+const tk = L.summaryTokens([{ label: "door", direction: "left", distance: 1.2 }, { label: "piano", direction: "left", distance: 3.6 },
+  { label: "wall art", direction: "behind", distance: 0.4 }, { label: "bed", direction: "front", distance: 14 }]);
+ok(tk.join(" ") === "hdr_left lbl_door d_1 and lbl_object d_4 hdr_behind lbl_wall_art d_0 hdr_front lbl_bed d_10", "tokens: " + tk.join(" "));
+ok(L.summaryTokens([]).join() === "none", "empty tokens");
+const vf = path.join(__dirname, "voice-clips.js");
+if (fs.existsSync(vf)) {
+  const w = {}; new Function("window", fs.readFileSync(vf, "utf8"))(w);
+  const need = new Set(["intro", "none", "and", "placed", ...tk]);
+  for (const d of ["left", "right", "behind", "front"]) need.add("hdr_" + d);
+  for (let i = 0; i <= 10; i++) need.add("d_" + i);
+  const missing = [...need].filter((n) => !w.EGO_VOICE[n]);
+  ok(!missing.length, "voice clips present: missing " + missing);
+}
+
 console.log(`EgoSpatial Live logic: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
