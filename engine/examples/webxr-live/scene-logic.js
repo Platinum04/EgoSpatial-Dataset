@@ -65,7 +65,22 @@
       take(me, me.meshSpace, me.semanticLabel, me.vertices ? centroid(me.vertices) : null);
     }
     for (const p of placed || []) out.push({ id: p.id, label: p.label, position: p.position.slice(), source: "placed" });
-    return out;
+    return dedupe(out);
+  }
+
+  /**
+   * Quest often reports one piece of furniture twice (a plane for its top AND a mesh for its volume).
+   * Merge same-label room objects whose floor positions are within `radius` metres; keep the first.
+   * User-placed objects are never merged.
+   */
+  function dedupe(objects, radius = 0.6) {
+    const kept = [];
+    for (const o of objects) {
+      const dup = o.source !== "placed" && kept.find((k) => k.source !== "placed" && k.label === o.label &&
+        Math.hypot(k.position[0] - o.position[0], k.position[2] - o.position[2]) < radius);
+      if (!dup) kept.push(o);
+    }
+    return kept;
   }
 
   /** Relations for every object from the current viewer pose. Objects at the viewer's own spot are dropped. */
@@ -84,16 +99,37 @@
 
   const PHRASE = { front: "in front of you", behind: "behind you", left: "on your left", right: "on your right" };
 
-  /** A short spoken summary, nearest first. */
-  function summarySentence(relations, max = 5) {
+  const ORDER = ["left", "right", "behind", "front"];
+  const HEAD = { front: "In front of you", behind: "Behind you", left: "On your left", right: "On your right" };
+  const metres = (d) => d < 1 ? `${Math.round(d * 100)} centimetres` : `${d.toFixed(1)} metres`;
+
+  /**
+   * Spoken summary grouped by direction (left, right, behind, then front), nearest first in each group,
+   * at most `perGroup` objects per direction, so the sides you can't see are always mentioned.
+   */
+  function summarySentence(relations, perGroup = 2) {
     if (!relations.length) return "I don't see any objects yet. Pinch or pull the trigger at a surface to place one.";
-    const parts = relations.slice(0, max).map((r) => {
-      const d = r.distance < 1 ? `${Math.round(r.distance * 100)} centimetres` : `${r.distance.toFixed(1)} metres`;
-      const name = r.label.charAt(0).toUpperCase() + r.label.slice(1);
-      return `${name} ${PHRASE[r.direction]}, ${d}`;
-    });
+    const parts = [];
+    for (const dir of ORDER) {
+      const g = relations.filter((r) => r.direction === dir).sort((a, b) => a.distance - b.distance).slice(0, perGroup);
+      if (g.length) parts.push(`${HEAD[dir]}: ${g.map((r) => `the ${r.label}, ${metres(r.distance)}`).join(", and ")}`);
+    }
     return parts.join(". ") + ".";
   }
+
+  /** One-line compass for the heads-up panel: nearest object per direction, e.g. "◀ door · ▶ bed · ▼ window". */
+  function compassLine(relations) {
+    const ICON = { left: "◀", right: "▶", behind: "▼", front: "▲" };
+    const parts = [];
+    for (const dir of ORDER) {
+      const g = relations.filter((r) => r.direction === dir).sort((a, b) => a.distance - b.distance);
+      if (g.length) parts.push(`${ICON[dir]} ${g[0].label}${g.length > 1 ? ` +${g.length - 1}` : ""}`);
+    }
+    return parts.join("  ");
+  }
+
+  /** Smallest absolute difference between two headings in degrees (0..180). */
+  function headingDelta(a, b) { const d = Math.abs(((a - b) % 360 + 540) % 360 - 180); return d; }
 
   /** Answer "where is the X" against current relations (simple label match). */
   function answerFor(relations, query) {
@@ -103,5 +139,5 @@
     return `The ${hit.label} is ${PHRASE[hit.direction]}, about ${hit.distance.toFixed(1)} metres away.`;
   }
 
-  return { collectObjects, relationsFor, summarySentence, answerFor, createRegistry, prettyLabel, transformPoint, centroid, PHRASE };
+  return { collectObjects, dedupe, relationsFor, summarySentence, compassLine, headingDelta, answerFor, createRegistry, prettyLabel, transformPoint, centroid, PHRASE };
 });

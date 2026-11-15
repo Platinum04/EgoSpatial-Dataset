@@ -40,8 +40,16 @@ R = L.relationsFor([0, 1.6, 0], yawQ(90), objs);
 const d2 = Object.fromEntries(R.relations.map(r => [r.id, r.direction]));
 ok(d2.table === "front" && d2.door === "right" && d2.couch === "left" && d2.storage === "behind", "after left turn: " + JSON.stringify(d2));
 
-const s = L.summarySentence(R.relations, 3);
-ok(/Mug/.test(s) && /metres|centimetres/.test(s), "summary: " + s);
+const s = L.summarySentence(R.relations);
+ok(/mug/.test(s) && /metres|centimetres/.test(s), "summary: " + s);
+ok(s.startsWith("On your left: the couch") && s.indexOf("On your right") < s.indexOf("Behind you") && s.indexOf("Behind you") < s.indexOf("In front of you"), "summary grouped left, right, behind, front: " + s);
+ok(/^◀ couch/.test(L.compassLine(R.relations)) && /▼ mug \+1/.test(L.compassLine(R.relations)), "compass: " + L.compassLine(R.relations));
+ok(L.headingDelta(350, 10) === 20 && L.headingDelta(0, 180) === 180 && L.headingDelta(90, 0) === 90, "heading delta wraps");
+
+// Quest reports one table as a plane AND a mesh: merged; a second table 2 m away and placed objects are kept.
+const dd = L.dedupe([{ id: "table", label: "table", position: [1, 0.7, 1] }, { id: "table 2", label: "table", position: [1.2, 0.4, 1.1] },
+  { id: "table 3", label: "table", position: [3, 0.7, 1] }, { id: "mug 1", label: "table", position: [1, 0.7, 1], source: "placed" }]);
+ok(dd.map(o => o.id).join(",") === "table,table 3,mug 1", "dedupe: " + dd.map(o => o.id));
 ok(L.summarySentence([]).startsWith("I don't see"), "empty summary");
 ok(/table is in front of you/.test(L.answerFor(R.relations, "where is the table?")), "answer table");
 ok(L.answerFor(R.relations, "where is the piano") === null, "unknown object");

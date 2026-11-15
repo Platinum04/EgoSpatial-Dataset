@@ -103,9 +103,12 @@ function setLabel(sprite, title, sub, color) {
   g.clearRect(0, 0, canvas.width, canvas.height);
   g.fillStyle = "rgba(12,14,18,0.82)"; g.beginPath(); g.roundRect(8, 8, canvas.width - 16, canvas.height - 16, 48); g.fill();
   g.fillStyle = color; g.beginPath(); g.roundRect(8, 8, 28, canvas.height - 16, 14); g.fill();
-  g.fillStyle = "#ffffff"; g.font = "bold 92px system-ui, sans-serif"; g.textBaseline = "middle";
-  g.fillText(title, 72, 92);
-  g.fillStyle = color; g.font = "bold 72px system-ui, sans-serif"; g.fillText(sub, 72, 184);
+  g.textBaseline = "middle";
+  const maxW = canvas.width - 72 - 40;
+  // shrink each line until it fits, so long text is never cut off at the panel edge
+  const fit = (text, size) => { do { g.font = `bold ${size}px system-ui, sans-serif`; size -= 4; } while (g.measureText(text).width > maxW && size > 28); };
+  g.fillStyle = "#ffffff"; fit(title, 92); g.fillText(title, 72, 92);
+  g.fillStyle = color; fit(sub, 72); g.fillText(sub, 72, 184);
   tex.needsUpdate = true;
 }
 
@@ -133,14 +136,17 @@ async function startXR() {
   reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
 
   // heads-up panel that follows the view
-  const hud = makeLabelSprite(); hud.scale.set(0.48, 0.12, 1); hud.position.set(0, -0.32, -1.1); camera.add(hud);
+  const hud = makeLabelSprite(); hud.scale.set(0.56, 0.14, 1); hud.position.set(0, -0.30, -1.1); camera.add(hud);
 
   const idFor = L.createRegistry(); const placed = []; const sprites = new Map(); const dots = new Map();
   let lastHit = null, latest = { relations: [] }, lastUpdate = 0, startedAt = performance.now(), sawRoomData = false;
+  // auto-speak: once when objects first appear, then whenever you turn by 80° or more (at most every 5 s)
+  let spokenHeading = null, lastSpokeAt = 0;
+  const say = (text) => { speak(text); lastSpokeAt = performance.now(); if (latest.heading != null) spokenHeading = latest.heading; };
 
   session.addEventListener("select", () => {
     const fromRoom = latest.relations.some((r) => !placed.find((p) => p.id === r.id));
-    if (!fromRoom && lastHit) placeAtHit(); else speak(L.summarySentence(latest.relations));
+    if (!fromRoom && lastHit) placeAtHit(); else say(L.summarySentence(latest.relations));
   });
   session.addEventListener("squeeze", () => { if (lastHit) placeAtHit(); });
   function placeAtHit() {
@@ -182,8 +188,11 @@ async function startXR() {
         for (const [id, s] of sprites) if (!seen.has(id)) { scene.remove(s); scene.remove(dots.get(id)); sprites.delete(id); dots.delete(id); }
         const n = latest.relations.length;
         const waiting = !sawRoomData && performance.now() - startedAt > 4000;
-        setLabel(hud, `EgoSpatial Live · ${n} object${n === 1 ? "" : "s"}`,
-          n ? "Pinch / trigger: hear where things are" : (waiting ? "No room data: pinch at a surface to place" : "Scanning your room…"), "#5aa9ff");
+        setLabel(hud, n ? L.compassLine(latest.relations) : "EgoSpatial Live",
+          n ? `${n} object${n === 1 ? "" : "s"} · pinch to hear · turn to update` : (waiting ? "No room data: pinch at a surface to place" : "Scanning your room…"), "#5aa9ff");
+        const now = performance.now();
+        if (n && latest.heading != null && now - lastSpokeAt > 5000 &&
+            (spokenHeading == null || L.headingDelta(latest.heading, spokenHeading) >= 80)) say(L.summarySentence(latest.relations));
       }
     }
     renderer.render(scene, camera);
@@ -194,6 +203,6 @@ async function startXR() {
     $("mode").className = "badge sim"; $("mode").textContent = "SIMULATED";
   });
   $("mode").className = "badge live"; $("mode").textContent = "LIVE DEVICE PERCEPTION";
-  speak("EgoSpatial Live started. Pinch or pull the trigger to hear where things are.");
+  say("EgoSpatial Live started. Turn around, or pinch your thumb and index finger, to hear where things are.");
 }
 xrBtn.onclick = () => startXR().catch((e) => { $("said").textContent = "Could not start mixed reality: " + e.message; });
