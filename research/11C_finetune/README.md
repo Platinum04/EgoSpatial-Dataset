@@ -39,8 +39,18 @@ Evaluation uses the same first-token four-way readout as 11-A and 11-B. It also 
 
 **Reading.** The pre-registered prediction holds on this test set. Gemma-2 lacked a linear lateral signal and LoRA could not create a usable one. Gemma 4 already had one (probe 0.85), and a small adapter made the output read it.
 
-**Caveat (important).** The V4 test reuses the training question *templates*. So 99.88% shows the lateral relation is learned for these templates, not that it generalises to new wording; the pre-registered template-overfitting check therefore remains open. Next: evaluate this adapter on the 240 freshly worded questions used for the hybrid engine (87.5%).
+**Caveat, and how we tested it.** The V4 test reuses the training question *templates*. So run 2 (15 Nov 2026, same seed; training losses identical to run 1) added a **fresh-wording test**: the same 800 untouched test scenes and answers, with every question rewritten in one of 7 phrasings never seen in training (from the milestone-11 parser study). No fresh question occurs verbatim in training (checked in code).
 
-**Files.** `finetune_summary.json` (values transcribed from the run; SHA-256 of the raw `finetune_results.json` recorded inside). The raw JSON and the LoRA adapter (`adapter_model.safetensors`, 96.7 MB) are in the Colab runtime and go to HF `Platinum04/EgoSpatial-Gemma-v2/11_evaluation/11C_finetune/gemma-4-E2B-it_qlora/` once an `HF_TOKEN` secret exists in the running Colab account.
+| Untouched test scenes, n = 800 | Overall | Ego left | Ego right | Ego front | Ego behind | Object-to-object |
+|---|---:|---:|---:|---:|---:|---:|
+| V4 wording, fine-tuned | 99.88% | 100% | 100% | 100% | 99% | 100% |
+| **Fresh wording, fine-tuned** | **85.5%** | **98%** | **96%** | 94% | 98% | 74.5% |
+| Fresh wording, base model (adapter off) | 36.9% | 30% | 48% | 63% | 20% | 33.5% |
+
+Per phrasing (fine-tuned): egocentric 98.5% / 95.5% / 100%; object-to-object "Relative to the {r}, where's the {t}?" 99%, "Suppose I turn toward the {r}…" 88%, "With the {r} straight ahead of me…" 58%, "Looking at the {r}, is the {t} to my left or right, ahead or behind?" 53%.
+
+**Reading.** The egocentric left/right skill transfers to new wording (left 30% → 98%, right 48% → 96% over the base model). The pre-registered template-overfitting check is passed for egocentric questions. Object-to-object transfer is partial: two of four new phrasings stay near 55%, so for those the adapter learned the training phrasing more than the relation. That limitation is reported, not hidden.
+
+**Files.** `finetune_summary.json` here. Raw `finetune_results.json`, `fresh_test_items.json` and the LoRA adapter (`adapter_model.safetensors`, 96.7 MB) are on HF `Platinum04/EgoSpatial-Gemma-v2/11_evaluation/11C_finetune/gemma-4-E2B-it_qlora/`, SHA-256-verified after upload.
 
 **Implementation note.** `peft.prepare_model_for_kbit_training` is not used: it upcasts Gemma 4's large embedding tables to fp32 and runs out of memory on a T4 (first attempt: OOM, 8.75 GiB).

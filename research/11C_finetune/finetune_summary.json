@@ -1,5 +1,5 @@
 {
- "note": "Transcribed from the Colab output of finetune_results.json (the runtime's HF_TOKEN fetch failed, so the raw file and adapter are still in the runtime). Values copied exactly; train_log omitted.",
+ "note": "Run 1 values transcribed from Colab output (raw file sha256 prefix 12dcf2366ad77d9e). Run 2 (15 Nov 2026, same seed, identical training losses) adds the fresh-wording test; its raw finetune_results.json (sha256 prefix 85c23a8fff3c4e33), fresh_test_items.json and the LoRA adapter are on HF Platinum04/EgoSpatial-Gemma-v2/11_evaluation/11C_finetune/gemma-4-E2B-it_qlora/ (SHA-verified after upload).",
  "raw_file_sha256": "12dcf2366ad77d9eb8ece6f657fe060822343a842d79396106c9eff7fd617865",
  "model": "google/gemma-4-E2B-it",
  "four_bit": true,
@@ -72,6 +72,85 @@
    },
    "right": {
     "right": 200
+   }
+  }
+ },
+ "run2": {
+  "date": "2026-11-15",
+  "seconds": 4102,
+  "raw_file_sha256_prefix": "85c23a8fff3c4e33",
+  "test_untouched": {
+   "overall": 0.9988,
+   "egocentric": 0.9975,
+   "object_to_object": 1.0,
+   "note": "identical to run 1"
+  },
+  "fresh_test": {
+   "description": "same 800 untouched V4 test scenes and gold answers; each question rewritten with one of 7 phrasings never used in training (3 egocentric, 4 object-to-object, round-robin)",
+   "overall": 0.855,
+   "egocentric": 0.965,
+   "egocentric/left": 0.98,
+   "egocentric/right": 0.96,
+   "egocentric/front": 0.94,
+   "egocentric/behind": 0.98,
+   "egocentric/lateral_binary": 0.97,
+   "object_to_object": 0.745,
+   "object_to_object/left": 0.6,
+   "object_to_object/right": 0.88,
+   "object_to_object/front": 0.68,
+   "object_to_object/behind": 0.82,
+   "object_to_object/lateral_binary": 0.76
+  },
+  "fresh_test_base_no_adapter": {
+   "overall": 0.3688,
+   "egocentric": 0.4025,
+   "egocentric/left": 0.3,
+   "egocentric/right": 0.48,
+   "egocentric/front": 0.63,
+   "egocentric/behind": 0.2,
+   "egocentric/lateral_binary": 0.535,
+   "object_to_object": 0.335,
+   "object_to_object/left": 0.09,
+   "object_to_object/right": 0.89,
+   "object_to_object/front": 0.35,
+   "object_to_object/behind": 0.01,
+   "object_to_object/lateral_binary": 0.495
+  },
+  "fresh_by_template": {
+   "egocentric/0": {
+    "template": "Where's the {t} from my perspective?",
+    "n": 134,
+    "acc": 0.985
+   },
+   "egocentric/1": {
+    "template": "Which way is the {t} for me right now?",
+    "n": 133,
+    "acc": 0.955
+   },
+   "egocentric/2": {
+    "template": "From my point of view, where does the {t} sit?",
+    "n": 133,
+    "acc": 1.0
+   },
+   "object_to_object/0": {
+    "template": "Suppose I turn toward the {r}. Where would the {t} be?",
+    "n": 100,
+    "acc": 0.88
+   },
+   "object_to_object/1": {
+    "template": "Looking at the {r}, is the {t} to my left or right, ahead or behind?",
+    "n": 100,
+    "acc": 0.53
+   },
+   "object_to_object/2": {
+    "template": "With the {r} straight ahead of me, where is the {t}?",
+    "n": 100,
+    "acc": 0.58
+   },
+   "object_to_object/3": {
+    "template": "Relative to the {r}, where's the {t}?",
+    "n": 100,
+    "acc": 0.99
    }
   }
  }

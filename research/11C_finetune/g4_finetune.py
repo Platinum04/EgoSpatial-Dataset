@@ -25,6 +25,24 @@ def load(split):
 TRAIN, VAL, TEST = load("train"), load("validation"), load("test")
 assert (len(TRAIN), len(VAL), len(TEST)) == (4000, 800, 800)
 
+# FRESH-WORDING TEST: the same 800 untouched test scenes and gold answers, but each question is rewritten with one of the
+# 7 phrasings (3 egocentric, 4 object-to-object) from the milestone-11 study, none of which appear in training.
+# Template k = index within task type, round-robin, so every phrasing is used about equally.
+FT = json.load(open(hf_hub_download("Platinum04/EgoSpatial-Gemma-v2", "11_evaluation/11_parser_eval.json")))["fresh_templates"]
+def freshen(TEST):
+    out, seen = [], Counter()
+    for ex in TEST:
+        tt = ex["task_type"]; tpl = FT["ego" if tt == "egocentric" else "o2o"]
+        k = seen[tt] % len(tpl); seen[tt] += 1
+        q = tpl[k].format(t=ex["target_object"], r=ex["reference_object"])
+        old = f"Question:\n{ex['question']}"
+        assert old in ex["text"], ex["id"]
+        out.append({**ex, "text": ex["text"].replace(old, f"Question:\n{q}"), "question": q, "fresh_template": f"{tt}/{k}"})
+    return out
+FRESH = freshen(TEST)
+assert sum(e["question"] in {t["question"] for t in TRAIN} for e in FRESH) == 0, "a fresh question occurs verbatim in training"
+print("FRESH sample:", FRESH[0]["question"], "|", next(e for e in FRESH if e["task_type"] != "egocentric")["question"])
+
 try:
     tok = AutoTokenizer.from_pretrained(args.model)
 except Exception:
@@ -142,8 +160,39 @@ def evaluate(DATA, name):
     print(f"{name}: overall {r['overall']:.3f} | ego L {r['egocentric/left']:.3f} R {r['egocentric/right']:.3f} F {r['egocentric/front']:.3f} B {r['egocentric/behind']:.3f} | o2o {r['object_to_object']:.3f}")
     return r
 R = {"model": args.model, "four_bit": not args.bf16, "transformers": transformers.__version__, "args": vars(args),
-     "trainable_params": trainable, "train_log": log, "validation": evaluate(VAL, "validation"), "test": evaluate(TEST, "TEST (untouched)")}
+     "trainable_params": trainable, "train_log": log, "validation": evaluate(VAL, "validation"), "test": evaluate(TEST, "TEST (untouched)"),
+     "fresh_test": evaluate(FRESH, "FRESH wording, fine-tuned")}
+with model.disable_adapter():   # control: the same fresh questions, base model without the LoRA adapter
+    R["fresh_test_base"] = evaluate(FRESH, "FRESH wording, base (no adapter)")
+# per-phrasing accuracy of the fine-tuned model (which wordings transfer, which do not)
+R["fresh_by_template"] = {}
+P = [prompt(ex) for ex in FRESH]
+with torch.no_grad():
+    S = []
+    for i in range(0, len(P), 8):
+        enc = tok(P[i:i + 8], return_tensors="pt", padding=True, add_special_tokens=False).to("cuda:0")
+        lg = forward_logits(enc.input_ids, enc.attention_mask)[:, -1].float()
+        S.append(torch.stack([lg[:, cand[d]].max(-1).values for d in DIRS], -1).cpu().numpy())
+pred = np.array(DIRS)[np.concatenate(S).argmax(1)]
+for key in sorted({e["fresh_template"] for e in FRESH}):
+    m = np.array([e["fresh_template"] == key for e in FRESH])
+    R["fresh_by_template"][key] = {"template": FT["ego" if key.startswith("ego") else "o2o"][int(key.split("/")[1])],
+                                   "n": int(m.sum()), "acc": round(float(np.mean(pred[m] == np.array([e["answer"] for e in FRESH])[m])), 4)}
+    print("  ", key, R["fresh_by_template"][key])
 R["seconds"] = round(time.time() - t0)
 json.dump(R, open(f"{args.out}/finetune_results.json", "w"), indent=1)
+json.dump(FRESH, open(f"{args.out}/fresh_test_items.json", "w"))
 model.save_pretrained(f"{args.out}/adapter")
 print("saved", os.listdir(args.out), "seconds", R["seconds"])
+
+# ---- backup to Hugging Face (token passed in the environment, read before training so a browser disconnect cannot lose it)
+if os.environ.get("HF_TOKEN"):
+    import hashlib
+    from huggingface_hub import HfApi
+    api = HfApi(token=os.environ["HF_TOKEN"].strip()); REPO = "Platinum04/EgoSpatial-Gemma-v2"
+    dst = "11_evaluation/11C_finetune/" + args.model.split("/")[-1] + "_qlora"
+    api.upload_folder(folder_path=args.out, path_in_repo=dst, repo_id=REPO, commit_message="11-C: Gemma 4 LoRA fine-tune, V4 test + fresh-wording test")
+    api.upload_file(path_or_fileobj=os.path.abspath(__file__), path_in_repo="11_evaluation/11C_finetune/g4_finetune.py", repo_id=REPO)
+    q = hf_hub_download(REPO, f"{dst}/finetune_results.json", force_download=True, token=os.environ["HF_TOKEN"].strip())
+    same = hashlib.sha256(open(q, "rb").read()).hexdigest() == hashlib.sha256(open(f"{args.out}/finetune_results.json", "rb").read()).hexdigest()
+    print("UPLOADED", dst, "SHA match:", same)
