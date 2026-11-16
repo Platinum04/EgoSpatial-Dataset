@@ -7,6 +7,7 @@
 · Model and experiment artifacts: [huggingface.co/Platinum04/EgoSpatial-Gemma-v2](https://huggingface.co/Platinum04/EgoSpatial-Gemma-v2)
 · Datasets: [huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data](https://huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data)
 · **EgoSpatial Live** (mixed reality on Meta Quest 3/3S and Android XR): [platinum04-egospatial-webxr.static.hf.space](https://platinum04-egospatial-webxr.static.hf.space/)
+· Author: Abdulmujeeb Ayomide Awodi, Miva Open University · ORCID [0009-0008-0353-9817](https://orcid.org/0009-0008-0353-9817)
 
 ## Demo: EgoSpatial Live on a Meta Quest 3S
 
