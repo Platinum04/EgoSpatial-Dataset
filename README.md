@@ -8,6 +8,16 @@
 · Datasets: [huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data](https://huggingface.co/datasets/Platinum04/EgoSpatial-Gemma-data)
 · **EgoSpatial Live** (mixed reality on Meta Quest 3/3S and Android XR): [platinum04-egospatial-webxr.static.hf.space](https://platinum04-egospatial-webxr.static.hf.space/)
 
+## Demo: EgoSpatial Live on a Meta Quest 3S
+
+<p align="center">
+  <img src="docs/media/egospatial_demo.gif" alt="EgoSpatial Live on a Meta Quest 3S: furniture labelled with egocentric direction and distance, and a left/right/behind/front compass" width="560">
+</p>
+
+[![Watch the full headset demo on YouTube](https://img.youtube.com/vi/hQT_fggPpOI/hqdefault.jpg)](https://youtu.be/hQT_fggPpOI)
+
+**Full video:** [youtu.be/hQT_fggPpOI](https://youtu.be/hQT_fggPpOI). Recorded in a real bedroom (15 Nov 2026): the headset's room scan provides the furniture, an exact geometry engine labels each object FRONT / BEHIND / LEFT / RIGHT with its distance, and a spoken summary plays as you turn.
+
 ## Findings
 We fine-tuned Gemma-2-2b-it with LoRA ("V4") to answer egocentric spatial questions such as "Where is the lamp relative to me?" from a structured scene description.
 
