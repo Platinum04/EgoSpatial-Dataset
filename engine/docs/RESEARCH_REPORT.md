@@ -67,7 +67,8 @@ Based on this evidence, the final system assigns **all geometry to a determinist
 | Question parsing with Gemma on unseen phrasings | 87.5% on fresh phrasings (egocentric 98.3%, object→object 76.9%). 28/240 confidently wrong answers come from mis-parses, so this is the main open weakness. |
 | WebXR simulated mode | Demonstrated (headless browser) |
 | WebXR **live** device perception | **Not yet demonstrated.** Hosted and ready for an on-device test. |
-| Unity / Quest 3S, Android XR | **Code only.** Not compiled or run. |
+| Unity / Quest 3S | **Code only.** Not compiled or run. |
+| Android XR native app | Builds and passes unit tests; runs on a phone emulator (Pixel 8, API 36, 2D mode). **Not yet run in XR** (headset or Android XR emulator). |
 | Real-world evaluation with perception noise | **Not done** |
 | General spatial intelligence | **Not claimed** |
 

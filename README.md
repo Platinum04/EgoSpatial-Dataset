@@ -83,7 +83,7 @@ egospatial-server --port 8765                   # HTTP JSON API for Unity / WebX
 |---|---|
 | Deterministic engine (Python) | Tested. Parity with the original 08B engine on 20,000 random scenes; 100% on V4 validation and test. |
 | JavaScript / WebXR | 3,204/3,204 conformance checks. **EgoSpatial Live** reads real room semantics (WebXR plane/mesh detection) and is verified in an emulated Quest 3. A recording on a physical Quest 3S is pending. |
-| Android XR app (Kotlin, Jetpack Compose for XR) | Builds in CI (AGP 9.4.1, compileSdk 37). Unit tests pass. APK downloadable from Actions. **Not yet run on the Android XR emulator or a device.** |
+| Android XR app (Kotlin, Jetpack Compose for XR) | Builds in CI and locally (AGP 9.4.1, compileSdk 37, Gradle 9.6.0 wrapper, JDK 17). Unit tests pass. **Runs on an Android emulator** (Pixel 8, API 36, 2D phone mode, no crashes; [screenshot](docs/android-xr-emulator.png), [30 s video](docs/android-xr-emulator-demo.mp4)). Not yet run on an XR headset or the Android XR emulator. |
 | Unity (C#) port | Written, formulas numerically cross-checked. **Not yet compiled or run on device.** |
 | Gemma semantic parser | 87.5% on fresh phrasings. 28/240 questions are mis-parsed and answered confidently wrong. Main open weakness. |
 | Real-world evaluation (perception noise) | Not yet done |

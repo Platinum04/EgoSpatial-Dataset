@@ -61,7 +61,7 @@ _Last updated: 2026-11-15 (11-C fresh wording 85.5%, ego L/R 98/96%; Quest 3S de
 
 ## Remaining work
 1. **Quest 3S recording of EgoSpatial Live:** run Space Setup, open the demo in Quest Browser, Start Mixed Reality, turn around, pinch, and record 30–60 s.
-2. **Android XR app:** built (GitHub `android-xr/`, APK from Actions). Still to do: run it on the Android XR emulator or a device and record it, then add live ARCore planes.
+2. **Android XR app:** builds and runs on a phone emulator (Pixel 8, API 36; recording in `docs/`). Still to do: run it on the Android XR emulator or an XR headset, then add live ARCore planes.
 3. **Unity / Quest 3S** build using `engine/ports/unity/`.
 4. **Research:**
    - Upload the E4B raw `causal_results.json` from the Colab runtime to HF (needs an HF token in that account).
