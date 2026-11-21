@@ -504,7 +504,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EgoSpatial.EgoSpatialDemoTurner
   degreesPerSecond: 20
-  autoTurn: 1
+  autoTurn: 0
 --- !u!81 &483178340
 AudioListener:
   m_ObjectHideFlags: 0

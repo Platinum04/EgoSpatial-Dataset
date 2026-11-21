@@ -8,4 +8,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/EgoSpatialDemo.unity
     guid: ad767fee12caad349b73cae3bb96350a
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: a43183fb711171048a93e820c7be8ac6, type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: cf321b4063875744089114241ca76ce1, type: 2}
