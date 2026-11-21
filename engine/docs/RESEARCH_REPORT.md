@@ -68,7 +68,7 @@ Based on this evidence, the final system assigns **all geometry to a determinist
 | WebXR simulated mode | Demonstrated (headless browser) |
 | WebXR **live** device perception | **Not yet demonstrated.** Hosted and ready for an on-device test. |
 | Unity / Quest 3S | **Code only.** Not compiled or run. |
-| Android XR native app | Builds and passes unit tests; runs on a phone emulator (Pixel 8, API 36, 2D mode). **Not yet run in XR** (headset or Android XR emulator). |
+| Android XR native app | Builds and passes unit tests; runs in 2D on a real Android phone and on a phone emulator (Pixel 8, API 36). **Not yet run in XR** (headset or Android XR emulator). |
 | Real-world evaluation with perception noise | **Not done** |
 | General spatial intelligence | **Not claimed** |
 
