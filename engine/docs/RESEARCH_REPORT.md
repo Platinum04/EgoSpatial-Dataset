@@ -34,7 +34,7 @@ Based on this evidence, the final system assigns **all geometry to a determinist
 | 08D-7 | Decision | No further LoRA work. Geometry goes to the deterministic engine; Gemma is a parser only. |
 | 08E | Hybrid orchestrator | Test 100% (800/800). Paraphrase stress 88.5% vs V4 direct 61.0%. All errors are parsing errors. |
 | 09 | Portable package | 23 tests, 3,204/3,204 JS conformance checks, 20,000/20,000 parity with 08B-2 |
-| 10 | XR integration | WebXR demo hosted over HTTPS. Unity and Android ports written. Device runs pending. |
+| 10 | XR integration | WebXR app run on a physical Meta Quest 3S. Android app runs in 2D on a phone. Unity demo runs on desktop; Quest build pending. |
 | 11 | Fresh-phrasing parser evaluation | Parser v1 73.8%, v2 87.5%. Neural parse latency median 1.48 s (p95 1.81 s) (T4). Deterministic path 0.017 ms median. |
 
 ## 4. What the model learned and what it did not
@@ -67,7 +67,7 @@ Based on this evidence, the final system assigns **all geometry to a determinist
 | Question parsing with Gemma on unseen phrasings | 87.5% on fresh phrasings (egocentric 98.3%, object→object 76.9%). 28/240 confidently wrong answers come from mis-parses, so this is the main open weakness. |
 | WebXR simulated mode | Demonstrated (headless browser) |
 | WebXR **live** device perception | **Not yet demonstrated.** Hosted and ready for an on-device test. |
-| Unity / Quest 3S | **Code only.** Not compiled or run. |
+| Unity / Quest 3S | Compiles in Unity 6; 3,103/3,103 conformance checks pass in Unity; desktop demo scene works. **Not yet run on a Quest headset.** |
 | Android XR native app | Builds and passes unit tests; runs in 2D on a real Android phone and on a phone emulator (Pixel 8, API 36). **Not yet run in XR** (headset or Android XR emulator). |
 | Real-world evaluation with perception noise | **Not done** |
 | General spatial intelligence | **Not claimed** |
