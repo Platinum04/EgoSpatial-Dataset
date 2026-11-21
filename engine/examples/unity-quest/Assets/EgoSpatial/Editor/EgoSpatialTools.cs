@@ -32,7 +32,9 @@ namespace EgoSpatial
 
         static string VectorsPath()
         {
-            // engine/examples/unity-quest -> engine/tests/vectors.json
+            // Project-local copy first (standalone project), else the repo copy engine/tests/vectors.json.
+            var local = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "vectors.json"));
+            if (File.Exists(local)) return local;
             return Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "..", "tests", "vectors.json"));
         }
 
