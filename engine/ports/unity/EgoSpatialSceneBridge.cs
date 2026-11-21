@@ -46,7 +46,10 @@ namespace EgoSpatial
             return new Vec3(p.x * System.Math.Cos(r) + p.z * System.Math.Sin(r), p.y, -p.x * System.Math.Sin(r) + p.z * System.Math.Cos(r));
         }
 
-        void Update()
+        void Update() => Tick();
+
+        /// Recompute relations now (also callable from editor tools or tests).
+        public void Tick()
         {
             if (objects.Count == 0) return;
             try

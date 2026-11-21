@@ -1,0 +1,4 @@
+heading 0: table=left, couch=behind, storage=right, door=front
+heading 90: table=behind, couch=right, storage=front, door=left
+heading 180: table=right, couch=front, storage=left, door=behind
+heading 270: table=front, couch=left, storage=behind, door=right
