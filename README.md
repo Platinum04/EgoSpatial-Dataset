@@ -62,6 +62,7 @@ Full write-up: [`engine/docs/RESEARCH_REPORT.md`](engine/docs/RESEARCH_REPORT.md
 | [`engine/docs/`](engine/docs/) | Research report, architecture, API, XR integration guide, datasets, model training, reproducibility |
 | [`android-xr/`](android-xr/) | **EgoSpatial XR**: native Android XR app (Jetpack Compose for XR 1.0.0-beta02). It shows two movable spatial panels, a room map and spoken relations, falls back to 2D on phones, and refuses instead of guessing on unknown objects. CI builds the APK and runs its unit tests. |
 | [`engine/examples/webxr-live/`](engine/examples/webxr-live/) | **EgoSpatial Live**: three.js mixed-reality app for Quest 3/3S and Android XR. It labels real furniture as front/behind/left/right as you move, and speaks a summary on pinch. |
+| [`engine/examples/unity-quest/`](engine/examples/unity-quest/) | Unity 6 project around the C# engine: conformance check, desktop demo scene, one-click Quest setup/build (headset run pending) |
 | [`engine/examples/webxr/`](engine/examples/webxr/) | Earlier WebXR demo: simulated mode, plus live `immersive-ar` with hit-test |
 | [`research/11A_gemma4/`](research/11A_gemma4/) | Gemma 4 replication: script and report. Raw outputs are on HF under `11_evaluation/11A_gemma4/`. |
 | [`notebooks/`](notebooks/), `EgoSpatial_Gemma_Prototype.ipynb` | The Colab research notebook (experiments 01–12) |
@@ -83,8 +84,8 @@ egospatial-server --port 8765                   # HTTP JSON API for Unity / WebX
 |---|---|
 | Deterministic engine (Python) | Tested. Parity with the original 08B engine on 20,000 random scenes; 100% on V4 validation and test. |
 | JavaScript / WebXR | 3,204/3,204 conformance checks. **EgoSpatial Live** reads real room semantics (WebXR plane/mesh detection) and runs on a physical Meta Quest 3S (see the demo GIF and video above) and in an emulated Quest 3. |
-| Android XR app (Kotlin, Jetpack Compose for XR) | Builds in CI and locally (AGP 9.4.1, compileSdk 37, Gradle 9.6.0 wrapper, JDK 17). Unit tests pass. **Runs in 2D on a real Android phone and on an emulator** (Pixel 8, API 36, no crashes; [screenshot](docs/android-xr-emulator.png), [30 s video](docs/android-xr-emulator-demo.mp4)). Not yet run on a physical phone, an XR headset or the Android XR emulator. |
-| Unity (C#) port | Written, formulas numerically cross-checked. **Not yet compiled or run on device.** |
+| Android XR app (Kotlin, Jetpack Compose for XR) | Builds in CI and locally (AGP 9.4.1, compileSdk 37, Gradle 9.6.0 wrapper, JDK 17). Unit tests pass. **Runs in 2D on a real Android phone and on an emulator** (Pixel 8, API 36, no crashes; [screenshot](docs/android-xr-emulator.png), [30 s video](docs/android-xr-emulator-demo.mp4)). Not yet run on an XR headset or the Android XR emulator. |
+| Unity (C#) port | Compiles and runs in Unity 6 (6000.6.9f1). **3,103/3,103 conformance checks pass inside Unity.** Desktop demo scene ([`engine/examples/unity-quest/`](engine/examples/unity-quest/)) labels objects correctly at all four headings. OpenXR + Meta Quest build setup added. **Not yet built for or run on a Quest headset.** |
 | Gemma semantic parser | 87.5% on fresh phrasings. 28/240 questions are mis-parsed and answered confidently wrong. Main open weakness. |
 | Real-world evaluation (perception noise) | Not yet done |
 

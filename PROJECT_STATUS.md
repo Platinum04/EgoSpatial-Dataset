@@ -62,7 +62,7 @@ _Last updated: 2026-11-15 (11-C fresh wording 85.5%, ego L/R 98/96%; Quest 3S de
 ## Remaining work
 1. ~~Quest 3S recording of EgoSpatial Live~~: done (README GIF, https://youtu.be/hQT_fggPpOI).
 2. **Android XR app:** builds and runs in 2D on a real Android phone and on a phone emulator (Pixel 8, API 36; recording in `docs/`). Still to do: run it on the Android XR emulator or an XR headset, then add live ARCore planes.
-3. **Unity / Quest 3S** build using `engine/ports/unity/`.
+3. **Unity / Quest 3S:** project in `engine/examples/unity-quest/` (engine passes 3,103/3,103 checks in Unity, desktop demo works, OpenXR + Meta Quest setup added). Still to do: build the APK, run and record on the Quest 3S, then passthrough + MRUK room anchors.
 4. **Research:**
    - Upload the E4B raw `causal_results.json` from the Colab runtime to HF (needs an HF token in that account).
    - Try stronger or multi-layer steering.
