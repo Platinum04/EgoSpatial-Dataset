@@ -24,11 +24,11 @@ _Last updated: 2026-11-15 (11-C fresh wording 85.5%, ego L/R 98/96%; Quest 3S de
 | 08D-7 | Interpretation + architecture decision | ✓ | `08D/08D-7/08D-7_REPORT.md` |
 | 08E | Hybrid orchestrator (deterministic geometry + Gemma parsing) | ✓ | `08E/` |
 | 09 | Portable engine package (Python + JS/C#/Kotlin ports, HTTP API) | ✓ | `engine/egospatial-1.0.1/`, GitHub `engine/` |
-| 10 | XR integration | ◐ EgoSpatial Live deployed. It reads real room semantics via WebXR plane/mesh detection and is verified in an emulated Quest 3 (IWER). A Quest 3S recording is pending | Space, `engine/examples/webxr-live/`, `engine/ports/` |
+| 10 | XR integration | ✓ EgoSpatial Live deployed. It reads real room semantics via WebXR plane/mesh detection and is verified on a physical Meta Quest 3S (recorded: README GIF + YouTube video) and in an emulated Quest 3 (IWER) | Space, `engine/examples/webxr-live/`, `engine/ports/` |
 | 11-A | Gemma 4 replication (zero-shot + layer-wise probes) | ✓ E2B, E4B (NF4) and the Gemma-2 base control | `11_evaluation/11A_gemma4/` |
 | 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal); Gemma-2 permutation control | ✓ E2B, E4B (NF4) and the Gemma-2 control; E4B raw JSON still to upload from the runtime | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
 | 11-C | Gemma 4 E2B LoRA fine-tune (V4 recipe, QLoRA on a T4) | ✓ 99.88% untouched test; fresh wording 85.5% (ego L/R 98%/96%); adapter + results on HF, SHA-verified | GitHub `research/11C_finetune/`; HF `11_evaluation/11C_finetune/` |
-| 13 | Native Android XR app (Jetpack Compose for XR) | ✓ Builds and tests in CI and locally (Gradle 9.6.0 wrapper, JDK 17); runs on emulator (Pixel 8, API 36, 2D phone fallback, 2026-11-21): map, heading slider and map-tap verified, no crashes; screenshot + 30 s recording in `docs/`. Quest 3S / XR headset run still pending | GitHub `android-xr/`, `docs/android-xr-emulator*.{png,mp4}` |
+| 13 | Native Android XR app (Jetpack Compose for XR) | ✓ Builds and tests in CI and locally (Gradle 9.6.0 wrapper, JDK 17); runs in 2D on a real Android phone and on an emulator (Pixel 8, API 36, 2026-11-21): map, heading slider and map-tap verified, no crashes; screenshot + 30 s recording in `docs/`. Quest 3S / XR headset run still pending | GitHub `android-xr/`, `docs/android-xr-emulator*.{png,mp4}` |
 | 11 | Evaluation (fresh phrasings, latency, invalid inputs, cross-platform) | ✓ | `11_evaluation/` |
 | 12 | Documentation + release v1.0.1 | ✓ | GitHub `engine/docs/`, `engine/RELEASE_NOTES.md` |
 
@@ -60,8 +60,8 @@ _Last updated: 2026-11-15 (11-C fresh wording 85.5%, ego L/R 98/96%; Quest 3S de
 - **11-C Gemma 4 E2B + V4 LoRA:** untouched test 99.88% (egocentric 99.75%, object-to-object 100%; left 100%, right 100%; one behind→left error). Validation 100%. Loss ≈0 by step 225/500. Same recipe on Gemma-2 gave left 6%. Fresh-wording test (same scenes, 7 unseen phrasings): 85.5% overall, egocentric 96.5% (L 98%, R 96%), object-to-object 74.5%; base model 36.9%.
 
 ## Remaining work
-1. **Quest 3S recording of EgoSpatial Live:** run Space Setup, open the demo in Quest Browser, Start Mixed Reality, turn around, pinch, and record 30–60 s.
-2. **Android XR app:** built (GitHub `android-xr/`, APK from Actions). Still to do: run it on the Android XR emulator or a device and record it, then add live ARCore planes.
+1. ~~Quest 3S recording of EgoSpatial Live~~: done (README GIF, https://youtu.be/hQT_fggPpOI).
+2. **Android XR app:** builds and runs in 2D on a real Android phone and on a phone emulator (Pixel 8, API 36; recording in `docs/`). Still to do: run it on the Android XR emulator or an XR headset, then add live ARCore planes.
 3. **Unity / Quest 3S** build using `engine/ports/unity/`.
 4. **Research:**
    - Upload the E4B raw `causal_results.json` from the Colab runtime to HF (needs an HF token in that account).

@@ -20,7 +20,12 @@ Every push builds the app on GitHub Actions:
 The run also executes the unit tests in `app/src/test`.
 
 ## Build it yourself
-To build locally, open this folder in Android Studio (latest Canary, as Google's XR sample recommends) and press Run. You can run it on the Android XR emulator or on any Android phone.
+To build locally you need **JDK 17** (the project toolchain; Android Studio's bundled JDK 25 alone fails with "Cannot find a Java installation ... languageVersion=17").
+
+- **Command line:** `gradlew testDebugUnitTest assembleDebug` (Gradle 9.6.0 wrapper included), with `JAVA_HOME` pointing at a JDK 17.
+- **Android Studio:** File → Open → this `android-xr` folder; set Settings → Build Tools → Gradle → Gradle JDK to a JDK 17; run configuration **app**.
+
+It is designed to run on the Android XR emulator, XR headsets and Android phones (2D fallback). **So far it has only been run on a phone emulator** (Pixel 8, API 36): see `../docs/android-xr-emulator.png` and `../docs/android-xr-emulator-demo.mp4`. Not yet tested on a physical phone or in XR.
 
 Build versions mirror Google's official sample [android/xr-samples](https://github.com/android/xr-samples):
 
