@@ -28,7 +28,7 @@ _Last updated: 2026-11-15 (11-C fresh wording 85.5%, ego L/R 98/96%; Quest 3S de
 | 11-A | Gemma 4 replication (zero-shot + layer-wise probes) | ✓ E2B, E4B (NF4) and the Gemma-2 base control | `11_evaluation/11A_gemma4/` |
 | 11-B | Readout, shuffled baseline, unembedding alignment, steering (causal); Gemma-2 permutation control | ✓ E2B, E4B (NF4) and the Gemma-2 control; E4B raw JSON still to upload from the runtime | `11_evaluation/11A_gemma4/gemma-4-E2B-it/causal/` |
 | 11-C | Gemma 4 E2B LoRA fine-tune (V4 recipe, QLoRA on a T4) | ✓ 99.88% untouched test; fresh wording 85.5% (ego L/R 98%/96%); adapter + results on HF, SHA-verified | GitHub `research/11C_finetune/`; HF `11_evaluation/11C_finetune/` |
-| 13 | Native Android XR app (Jetpack Compose for XR) | ✓ Builds and tests in CI and locally (Gradle 9.6.0 wrapper, JDK 17); runs on emulator (Pixel 8, API 36, 2D phone fallback, 2026-11-21): map, heading slider and map-tap verified, no crashes; screenshot + 30 s recording in `docs/`. Quest 3S / XR headset run still pending | GitHub `android-xr/`, `docs/android-xr-emulator*.{png,mp4}` |
+| 13 | Native Android XR app (Jetpack Compose for XR) | ◐ Builds and tests in CI and locally (Gradle 9.6.0 wrapper, JDK 17); runs on emulator (Pixel 8, API 36, 2D phone fallback, 2026-11-21): map, heading slider and map-tap verified, no crashes; screenshot + 30 s recording in `docs/`. not yet run on a physical phone, an XR headset or the Android XR emulator | GitHub `android-xr/`, `docs/android-xr-emulator*.{png,mp4}` |
 | 11 | Evaluation (fresh phrasings, latency, invalid inputs, cross-platform) | ✓ | `11_evaluation/` |
 | 12 | Documentation + release v1.0.1 | ✓ | GitHub `engine/docs/`, `engine/RELEASE_NOTES.md` |
 

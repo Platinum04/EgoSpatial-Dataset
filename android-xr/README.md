@@ -25,7 +25,7 @@ To build locally you need **JDK 17** (the project toolchain; Android Studio's bu
 - **Command line:** `gradlew testDebugUnitTest assembleDebug` (Gradle 9.6.0 wrapper included), with `JAVA_HOME` pointing at a JDK 17.
 - **Android Studio:** File → Open → this `android-xr` folder; set Settings → Build Tools → Gradle → Gradle JDK to a JDK 17; run configuration **app**.
 
-It runs on the Android XR emulator or on any Android phone/emulator (2D fallback). Verified on a Pixel 8 emulator, API 36: see `../docs/android-xr-emulator.png` and `../docs/android-xr-emulator-demo.mp4`.
+It is designed to run on the Android XR emulator, XR headsets and Android phones (2D fallback). **So far it has only been run on a phone emulator** (Pixel 8, API 36): see `../docs/android-xr-emulator.png` and `../docs/android-xr-emulator-demo.mp4`. Not yet tested on a physical phone or in XR.
 
 Build versions mirror Google's official sample [android/xr-samples](https://github.com/android/xr-samples):
 
